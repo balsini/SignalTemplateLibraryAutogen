@@ -75,8 +75,10 @@ class STLdriver;
 ;
 
 %token
-  INPUT     "SIG"
-  REFERENCE "REF"
+  INPUT           "SIG"
+  REFERENCE       "REF"
+  INPUT_DIFF      "SIG_DIFF"
+  REFERENCE_DIFF  "REF_DIFF"
 ;
 
 %token
@@ -124,8 +126,14 @@ assignment:
 ;
 
 assertion:
-  ALWAYS      time_range "(" assertion_body ")" { $$ = "TODO assertion1" + $4; }
-| EVENTUALLY  time_range "(" assertion_body ")" { $$ = "TODO assertion2" + $4; }
+  ALWAYS      time_range "(" assertion_body ")" {
+    $$ = "TODO assertion1" + $4;
+    driver.createMainTemporalOperator();
+  }
+| EVENTUALLY  time_range "(" assertion_body ")" {
+    $$ = "TODO assertion2" + $4;
+    driver.createMainTemporalOperator();
+  }
 ;
 
 assertion_body:

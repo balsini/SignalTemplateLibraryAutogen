@@ -56,10 +56,6 @@ public:
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    void createMainTemporalOperator(TimeInterval t)
-    {
-      appendln("MainTemporalOperator");
-    }
     void createMainTemporalOperator()
     {
       appendln("MainTemporalOperator");
