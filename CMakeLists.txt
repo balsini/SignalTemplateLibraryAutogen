@@ -21,6 +21,7 @@ ADD_FLEX_BISON_DEPENDENCY(STLScanner STLParser)
 add_executable(${PROJECT_NAME}
   main.cpp
   STLdriver.cpp
+  utility.cpp
   ${BISON_STLParser_OUTPUTS}
   ${FLEX_STLScanner_OUTPUTS}
 )

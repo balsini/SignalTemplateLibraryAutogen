@@ -7,7 +7,8 @@
 %define parse.assert
 %code requires
 {
-# include <string>
+#include <string>
+#include <utility.h>
 class STLdriver;
 }
 // The parsing context.
@@ -92,6 +93,9 @@ class STLdriver;
 %type  <std::string>  assignments
 %type  <std::string>  assertion
 %type  <std::string>  assertion_body
+%type  <TimeInterval> time_range
+%type  <Border>       lparen
+%type  <Border>       rparen
 
 %printer { yyoutput << $$; } <*>;
 
@@ -115,13 +119,13 @@ assignments:
 ;
 
 assignment:
-  VAR ASSIGN exp          { $$ = $1 + " = " + $3; }
-| VAR ASSIGN assignment   { $$ = $1 + " = " + $3; }
+  VAR ASSIGN exp          { $$ = $1 + " = " + $3; driver.setVariable($1); }
+| VAR ASSIGN assignment   { $$ = $1 + " = " + $3; driver.setVariable($1); }
 ;
 
 assertion:
-  ALWAYS      global_time "(" assertion_body ")" { $$ = "TODO assertion1" + $4; }
-| EVENTUALLY  global_time "(" assertion_body ")" { $$ = "TODO assertion2" + $4; }
+  ALWAYS      time_range "(" assertion_body ")" { $$ = "TODO assertion1" + $4; }
+| EVENTUALLY  time_range "(" assertion_body ")" { $$ = "TODO assertion2" + $4; }
 ;
 
 assertion_body:
@@ -149,29 +153,34 @@ exp:
 | exp "-" exp   { $$ = $1 + " - " + $3; }
 | exp "*" exp   { $$ = $1 + " * " + $3; }
 | exp "/" exp   { $$ = $1 + " / " + $3; }
-| VAR           { $$ = $1; }
 | FNUM          { $$ = $1; }
 | INUM          { $$ = $1; }
 | INPUT         { $$ = "inputSignal"; }
 | REFERENCE     { $$ = "referenceSignal"; }
+| VAR           { $$ = $1;
+                  if (!driver.variableExists($1)) {
+                    error (yyla.location, "undefined variable <" + $1 + ">");
+                    YYABORT;
+                  }
+                }
 ;
 
 function:
-  ISSTEP "(" exp "," exp ")" {  }
+  ISSTEP "(" exp "," exp ")" { driver.createIsStepBlock($3, $5); }
 ;
 
-global_time:
-  lparen exp "," exp rparen {  }
+time_range:
+  lparen exp "," exp rparen { $$ = TimeInterval($2, $1, $4, $5); }
 ;
 
 lparen:
-  "(" {  }
-| "[" {  }
+  "(" { $$ = INTERVAL_OPEN; }
+| "[" { $$ = INTERVAL_CLOSED; }
 ;
 
 rparen:
-  ")" {  }
-| "]" {  }
+  ")" { $$ = INTERVAL_OPEN; }
+| "]" { $$ = INTERVAL_CLOSED; }
 ;
 
 footer:
@@ -180,9 +189,7 @@ footer:
 
 %% /*------------------------------------------------------------------------*/
 
-void
-yy::STLparser::error (const location_type& l,
-                          const std::string& m)
+void yy::STLparser::error(const location_type& l, const std::string& m)
 {
-  driver.error (l, m);
+  driver.error(l, "ERROR: " + m);
 }

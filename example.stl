@@ -14,7 +14,7 @@ min = stepSize - range;
 /*
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
-[] (0 , T] (isStep(sig, stepSize) && SIG - REF < max);
+[] (0 , T] (SIG - REF < max);
 */
 
-[] (0 , T] (SIG - REF < max);
+[] [0 , T] (isStep(sig, stepSize) && SIG - REF < max);

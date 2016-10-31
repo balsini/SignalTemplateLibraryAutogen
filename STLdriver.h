@@ -3,8 +3,10 @@
 
 #include <string>
 #include <fstream>
+#include <map>
 
 #include <STLparser.hh>
+#include <utility.h>
 
 // Tell Flex the lexer's prototype ...
 # define YY_DECL \
@@ -16,9 +18,18 @@ class STLdriver
 {
     std::ofstream outputFile;
 
+    std::map<std::string, bool> variablesSet;
+
 public:
     STLdriver (char *filename);
     virtual ~STLdriver();
+
+    bool variableExists(std::string v) {
+      return (variablesSet.find(v) != variablesSet.end());
+    }
+    void setVariable(std::string v) {
+      variablesSet[v] = true;
+    }
 
     // Run the parser on file F.
     // Return 0 on success.
@@ -44,5 +55,18 @@ public:
     // Error handling.
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
+
+    void createMainTemporalOperator(TimeInterval t)
+    {
+      appendln("MainTemporalOperator");
+    }
+    void createMainTemporalOperator()
+    {
+      appendln("MainTemporalOperator");
+    }
+    void createIsStepBlock(std::string v1, std::string v2)
+    {
+      appendln("StepBlockCreation [" + v1 + "] [" + v2 + "]");
+    }
 };
 #endif
