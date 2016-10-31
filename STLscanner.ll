@@ -44,8 +44,10 @@ blank [ \t]
 
 "="   return yy::STLparser::make_ASSIGN(loc);
 
-"sig"   return yy::STLparser::make_INPUT(loc);
-"ref" return yy::STLparser::make_REFERENCE(loc);
+"SIG" return yy::STLparser::make_INPUT(loc);
+"REF" return yy::STLparser::make_REFERENCE(loc);
+
+"isStep" return yy::STLparser::make_ISSTEP(loc);
 
 ","   return yy::STLparser::make_COMMA(loc);
 ";"   return yy::STLparser::make_SEMICOLON(loc);
@@ -92,7 +94,8 @@ blank [ \t]
   long n = strtol(yytext, NULL, 10);
   if (! (INT_MIN <= n && n <= INT_MAX && errno != ERANGE))
     driver.error (loc, "integer is out of range");
-  return yy::STLparser::make_INUM(n, loc);
+  //return yy::STLparser::make_INUM(n, loc);
+  return yy::STLparser::make_INUM(yytext, loc);
 }
 
 {float}   {
@@ -100,7 +103,8 @@ blank [ \t]
   long double n = strtold(yytext, NULL);
   if (! (DBL_MIN <= n && n <= DBL_MAX && errno != ERANGE))
     driver.error (loc, "floating point number is out of range");
-  return yy::STLparser::make_FNUM(n, loc);
+  //return yy::STLparser::make_FNUM(n, loc);
+  return yy::STLparser::make_FNUM(yytext, loc);
 }
 
 {id}      return yy::STLparser::make_VAR(yytext, loc);

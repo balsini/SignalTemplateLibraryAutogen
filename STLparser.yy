@@ -74,17 +74,24 @@ class STLdriver;
 ;
 
 %token
-  INPUT     "sig"
-  REFERENCE "ref"
+  INPUT     "SIG"
+  REFERENCE "REF"
+;
+
+%token
+  ISSTEP      "isStep"
 ;
 
 %token <std::string>  VAR   "identifier"
-%token <int>          INUM  "integer number"
-%token <long double>  FNUM  "floating point number"
+%token <std::string>  INUM  "integer number"
+%token <std::string>  FNUM  "floating point number"
 
-%type  <long double>  exp
-%type  <bool>         cmp
-%type  <long double>  assignment
+%type  <std::string>  exp
+%type  <std::string>  cmp
+%type  <std::string>  assignment
+%type  <std::string>  assignments
+%type  <std::string>  assertion
+%type  <std::string>  assertion_body
 
 %printer { yyoutput << $$; } <*>;
 
@@ -93,67 +100,78 @@ class STLdriver;
 parser: body footer;
 
 body:
+  %empty
 | body line
 ;
 
 line:
-  assignments SEMICOLON
-| assertions   SEMICOLON
+  assignments SEMICOLON   { driver.appendln($1 + ";"); }
+| assertion   SEMICOLON   { driver.appendln($1 + ";"); }
 ;
 
 assignments:
-  assignments assignment
-| assignment
+  assignments assignment  { $$ = $1 + $2; }
+| assignment              { $$ = $1; }
 ;
 
 assignment:
-  VAR ASSIGN exp        { driver.variables[$1] = $3; $$ = $3; }
-| VAR ASSIGN assignment { driver.variables[$1] = $3; $$ = $3; }
-;
-
-assertions:
-  assertions assertion  {}
-| assertion             {}
+  VAR ASSIGN exp          { $$ = $1 + " = " + $3; }
+| VAR ASSIGN assignment   { $$ = $1 + " = " + $3; }
 ;
 
 assertion:
-  ALWAYS      time formula {}
-| EVENTUALLY  time formula {}
-| ALWAYS      formula {}
-| EVENTUALLY  formula {}
+  ALWAYS      global_time "(" assertion_body ")" { $$ = "TODO assertion1" + $4; }
+| EVENTUALLY  global_time "(" assertion_body ")" { $$ = "TODO assertion2" + $4; }
 ;
 
-time:
-  LSPAREN exp COMMA exp RSPAREN {}
-;
-
-formula:
-  LRPAREN cmp RRPAREN {}
-| LRPAREN assertion RRPAREN {}
+assertion_body:
+  cmp                 { $$ = "TODO assertion_body1"; }
+| assertion_body cmp  { $$ = "TODO assertion_body2"; }
 ;
 
 cmp:
-  exp GEQ exp     { $$ = ($1 <= $3); }
-| exp LEQ exp     { $$ = ($1 >= $3); }
-| exp GREATER exp { $$ = ($1 < $3); }
-| exp SMALLER exp { $$ = ($1 > $3); }
-| exp EQUAL exp   { $$ = ($1 == $3); }
-| exp NEQUAL exp  { $$ = ($1 != $3); }
-| "(" cmp ")"     { std::swap($$, $2); }
-| cmp AND cmp     { $$ = ($1 && $3); }
-| cmp OR cmp      { $$ = ($1 || $3); }
-| NOT cmp         { $$ = !( $2 ); }
+  "(" cmp ")" {  }
+| exp GEQ exp         {  }
+| exp LEQ exp         {  }
+| exp GREATER exp     {  }
+| exp SMALLER exp     {  }
+| exp EQUAL exp       {  }
+| exp NEQUAL exp      {  }
+| cmp AND cmp         {  }
+| cmp OR cmp          {  }
+| NOT cmp             {  }
+| function            { $$ = "function"; }
 ;
 
 exp:
-  exp "+" exp   { $$ = ($1 + $3); }
-| exp "-" exp   { $$ = ($1 - $3); }
-| exp "*" exp   { $$ = ($1 * $3); }
-| exp "/" exp   { $$ = ($1 / $3); }
-| "(" exp ")"   { std::swap($$, $2); }
-| VAR           { $$ = driver.variables[$1]; }
+  "(" exp ")"   { $$ = " ( " + $2 + " ) "; }
+| exp "+" exp   { $$ = $1 + " + " + $3; }
+| exp "-" exp   { $$ = $1 + " - " + $3; }
+| exp "*" exp   { $$ = $1 + " * " + $3; }
+| exp "/" exp   { $$ = $1 + " / " + $3; }
+| VAR           { $$ = $1; }
 | FNUM          { $$ = $1; }
 | INUM          { $$ = $1; }
+| INPUT         { $$ = "inputSignal"; }
+| REFERENCE     { $$ = "referenceSignal"; }
+;
+
+function:
+  ISSTEP "(" exp "," exp ")" {  }
+;
+
+global_time:
+  lparen exp "," exp rparen {  }
+;
+
+lparen:
+  "(" {  }
+| "[" {  }
+;
+
+rparen:
+  ")" {  }
+| "]" {  }
 ;
 
 footer:

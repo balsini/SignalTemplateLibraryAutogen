@@ -1,10 +1,11 @@
 T = 1;
-range = 0.3;
+T2 = T;
+range = (0.3 + T) * 1.1;
 
-step = 5;
+stepSize = 5;
 
-max = step + range;
-min = step - range;
+max = stepSize + range;
+min = stepSize - range;
 
 //[] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 
@@ -13,6 +14,7 @@ min = step - range;
 /*
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
+[] (0 , T] (isStep(sig, stepSize) && SIG - REF < max);
 */
 
-<> [0, T] ((sig > 0) && <>(sig - ref > c));
+[] (0 , T] (SIG - REF < max);

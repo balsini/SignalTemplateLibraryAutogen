@@ -1,13 +1,14 @@
 #include <iostream>
+
 #include <STLdriver.h>
 
 int main(int argc, char *argv[])
 {
     int res = 0;
-    STLdriver driver;
+    STLdriver driver(argv[2]);
 
-    if (argc != 2) {
-        std::cout << "Please, provide a valid file path as argument" << std::endl;
+    if (argc != 3) {
+        std::cout << "Please, provide a valid input file path as argument AND a falid output file path" << std::endl;
         return -1;
     }
 
@@ -16,7 +17,6 @@ int main(int argc, char *argv[])
 
     res = driver.parse(argv[1]);
 
-    std::cout << "Driver results: " << driver.result << std::endl;
     std::cout << "Parser results: " << res << std::endl;
 
     return res;

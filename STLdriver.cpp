@@ -1,12 +1,22 @@
 #include <STLdriver.h>
 #include <STLparser.hh>
 
-STLdriver::STLdriver()
+STLdriver::STLdriver(char * filename)
     : trace_scanning (false), trace_parsing (false)
 {
+    outputFile.open(filename, std::ofstream::out);
+    if (outputFile.is_open()) {
+        std::cout << "Output file opened" << std::endl;
+    } else {
+        std::cout << "Error opening file" << std::endl;
+    }
 }
 
-STLdriver::~STLdriver() {}
+STLdriver::~STLdriver()
+{
+    outputFile.close();
+    std::cout << "Output file closed" << std::endl;
+}
 
 int STLdriver::parse(const std::string &f)
 {
@@ -33,10 +43,12 @@ void STLdriver::error(const std::string& m)
 void STLdriver::append(const std::string &s)
 {
     std::cout << s;
+    outputFile << s;
 }
 
 void STLdriver::appendln(const std::string &s)
 {
     append(s);
     std::cout << std::endl;
+    outputFile << std::endl;
 }
