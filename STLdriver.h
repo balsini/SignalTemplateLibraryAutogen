@@ -10,7 +10,7 @@
 
 // Tell Flex the lexer's prototype ...
 # define YY_DECL \
-    yy::STLparser::symbol_type yylex (STLdriver& driver)
+  yy::STLparser::symbol_type yylex (STLdriver& driver)
 // ... and declare it for the parser's sake.
 YY_DECL;
 
@@ -20,7 +20,7 @@ class STLdriver
 
     std::map<std::string, bool> variablesSet;
 
-public:
+  public:
     STLdriver (char *filename);
     virtual ~STLdriver();
 
@@ -62,6 +62,6 @@ public:
     void createMainTemporalOperator();
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
-    void createFunctionBlock();
+    void createExpBlock();
 };
 #endif

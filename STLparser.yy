@@ -180,8 +180,12 @@ exp:
 ;
 
 function:
-  ISSTEP "(" exp "," exp ")" { driver.createIsStepBlock($3, $5); }
-| DIFF "(" exp ")" { driver.createDiffBlock($3); }
+  ISSTEP "(" exp "," exp ")" {
+    driver.createIsStepBlock($3, $5);
+  }
+| DIFF "(" exp ")" {
+    driver.createDiffBlock($3);
+  }
 ;
 
 time_range:

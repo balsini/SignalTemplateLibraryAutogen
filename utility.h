@@ -9,10 +9,10 @@ class TimeInterval
 {
   public:
     TimeInterval(std::string l, Border li, std::string r, Border ri) :
-    start(l),
-    end(r),
-    startBorder(li),
-    endBorder(ri)
+      start(l),
+      end(r),
+      startBorder(li),
+      endBorder(ri)
     {}
 
     TimeInterval() {}
