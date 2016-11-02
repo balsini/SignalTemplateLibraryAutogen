@@ -1,8 +1,11 @@
 #include <STLdriver.h>
 #include <STLparser.hh>
 
-STLdriver::STLdriver(char * filename)
-    : trace_scanning (false), trace_parsing (false)
+STLdriver::STLdriver(char * filename) :
+    trace_scanning(false),
+    trace_parsing(false),
+    REF_input(false),
+    SIG_input(false)
 {
     outputFile.open(filename, std::ofstream::out);
     if (outputFile.is_open()) {
@@ -51,4 +54,34 @@ void STLdriver::appendln(const std::string &s)
     append(s);
     std::cout << std::endl;
     outputFile << std::endl;
+}
+
+void STLdriver::createMainTemporalOperator()
+{
+  appendln("MainTemporalOperator");
+}
+
+void STLdriver::createIsStepBlock(std::string v1, std::string v2)
+{
+  appendln("StepBlockCreation [" + v1 + "] [" + v2 + "]");
+}
+
+void STLdriver::createDiffBlock(std::string v)
+{
+  appendln("DiffBlockCreation [" + v + "]");
+}
+
+void STLdriver::createFunctionBlock()
+{
+  appendln("FunctionBlock");
+
+  if (SIG_input) {
+      // TODO add SIG port
+      SIG_input = false;
+  }
+
+  if (REF_input) {
+      // TODO add REF port
+      REF_input = false;
+  }
 }

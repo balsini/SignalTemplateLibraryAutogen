@@ -56,13 +56,12 @@ public:
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    void createMainTemporalOperator()
-    {
-      appendln("MainTemporalOperator");
-    }
-    void createIsStepBlock(std::string v1, std::string v2)
-    {
-      appendln("StepBlockCreation [" + v1 + "] [" + v2 + "]");
-    }
+    bool REF_input;
+    bool SIG_input;
+
+    void createMainTemporalOperator();
+    void createIsStepBlock(std::string v1, std::string v2);
+    void createDiffBlock(std::string v);
+    void createFunctionBlock();
 };
 #endif

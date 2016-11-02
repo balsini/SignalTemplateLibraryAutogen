@@ -72,12 +72,11 @@ class STLdriver;
 %token
   INPUT           "SIG"
   REFERENCE       "REF"
-  INPUT_DIFF      "SIG_DIFF"
-  REFERENCE_DIFF  "REF_DIFF"
 ;
 
 %token
   ISSTEP      "isStep"
+  DIFF        "diff"
 ;
 
 %token <std::string>  VAR   "identifier"
@@ -163,18 +162,26 @@ exp:
 | exp "/" exp   { $$ = $1 + " / " + $3; }
 | FNUM          { $$ = $1; }
 | INUM          { $$ = $1; }
-| INPUT         { $$ = "inputSignal"; }
-| REFERENCE     { $$ = "referenceSignal"; }
-| VAR           { $$ = $1;
-                  if (!driver.variableExists($1)) {
-                    error (yyla.location, "undefined variable <" + $1 + ">");
-                    YYABORT;
-                  }
-                }
+| INPUT         {
+    $$ = "inputSignal";
+    driver.SIG_input = true;
+  }
+| REFERENCE     {
+    $$ = "referenceSignal";
+    driver.REF_input = true;
+  }
+| VAR           {
+    $$ = $1;
+    if (!driver.variableExists($1)) {
+      error (yyla.location, "undefined variable <" + $1 + ">");
+      YYABORT;
+    }
+  }
 ;
 
 function:
   ISSTEP "(" exp "," exp ")" { driver.createIsStepBlock($3, $5); }
+| DIFF "(" exp ")" { driver.createDiffBlock($3); }
 ;
 
 time_range:

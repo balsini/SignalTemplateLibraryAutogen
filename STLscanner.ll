@@ -46,10 +46,9 @@ blank [ \t]
 
 "SIG" return yy::STLparser::make_INPUT(loc);
 "REF" return yy::STLparser::make_REFERENCE(loc);
-"SIG_DIFF" return yy::STLparser::make_INPUT_DIFF(loc);
-"REF_DIFF" return yy::STLparser::make_REFERENCE_DIFF(loc);
 
 "isStep" return yy::STLparser::make_ISSTEP(loc);
+"diff" return yy::STLparser::make_DIFF(loc);
 
 ","   return yy::STLparser::make_COMMA(loc);
 ";"   return yy::STLparser::make_SEMICOLON(loc);
