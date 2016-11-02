@@ -116,3 +116,8 @@ void STLdriver::createComparisonBlock(ComparisonOperator op, std::string v1, std
 {
   appendln("createComparisonBlock [" + v1 + "][" + v2 + "]");
 }
+
+void STLdriver::createMathBlock(MathOperator op, std::string v1, std::string v2)
+{
+  appendln("createMathBlock [" + v1 + "][" + v2 + "]");
+}

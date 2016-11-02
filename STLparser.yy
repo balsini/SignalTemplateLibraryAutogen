@@ -84,7 +84,7 @@ class STLdriver;
 %token <std::string>  FNUM  "floating point number"
 
 %type  <std::string>  exp
-%type  <std::string>  expOp
+%type  <MathOperator> expOp
 %type  <std::string>  expWP
 %type  <std::string>  cmp
 %type  <ComparisonOperator> cmpOp
@@ -186,7 +186,8 @@ exp:
     $$ = "(" + $2 + ")";
   }
 | exp expOp exp {
-    $$ = $1 + $2 + $3;
+    $$ = $1 + " " + $3;
+    driver.createMathBlock($2, $1, $3);
   }
 | FNUM          {
     $$ = $1;
@@ -207,10 +208,10 @@ exp:
 ;
 
 expOp:
-  "+"   { $$ = " + "; }
-| "-"   { $$ = " - "; }
-| "*"   { $$ = " * "; }
-| "/"   { $$ = " / "; }
+  "+"   { $$ = SUM; }
+| "-"   { $$ = SUB; }
+| "*"   { $$ = MUL; }
+| "/"   { $$ = DIV; }
 ;
 
 expWP: // Expressions plus external ports
@@ -221,7 +222,8 @@ expWP: // Expressions plus external ports
     $$ = $1;
   }
 | expWP expOp expWP {
-    $$ = $1 + $2 + $3;
+    $$ = $1 + " " + $3;
+    driver.createMathBlock($2, $1, $3);
   }
 | INPUT         {
     $$ = "SIG";

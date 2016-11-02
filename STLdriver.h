@@ -77,5 +77,6 @@ class STLdriver
     void createSignalBlock();
     void createReferenceBlock();
     void createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2);
+    void createMathBlock(MathOperator op, std::string v1, std::string v2);
 };
 #endif
