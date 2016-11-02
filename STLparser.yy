@@ -87,6 +87,7 @@ class STLdriver;
 %type  <std::string>  expOp
 %type  <std::string>  expWP
 %type  <std::string>  cmp
+%type  <ComparisonOperator> cmpOp
 %type  <std::string>  assignment
 %type  <std::string>  assignments
 %type  <std::string>  assertion
@@ -124,7 +125,7 @@ header:
 ;
 
 header_line:
-  assignments   SEMICOLON   { driver.appendln($1 + ";"); }
+  assignments   SEMICOLON  // { driver.appendln($1); }
 ;
 
 body:
@@ -133,7 +134,7 @@ body:
 ;
 
 body_line:
-  assertion   SEMICOLON   { driver.appendln($1 + ";"); }
+  assertion   SEMICOLON  // { driver.appendln($1); }
 ;
 
 assignments:
@@ -162,14 +163,23 @@ assertion_body:
 
 cmp:
   "(" cmp ")" {  }
-| expWP cmpOp expWP   {  }
+| expWP cmpOp expWP   {
+    driver.createComparisonBlock($2, $1, $3);
+  }
 | cmp AND cmp         {  }
 | cmp OR cmp          {  }
 | NOT cmp             {  }
 | boolFunction        { $$ = "function"; }
 ;
 
-cmpOp: GEQ | LEQ | GREATER | SMALLER | EQUAL | NEQUAL;
+cmpOp:
+  ">="  { $$ = GEQ; }
+| "<="  { $$ = LEQ; }
+| ">"   { $$ = GREATER; }
+| "<"   { $$ = SMALLER; }
+| "=="  { $$ = EQUAL; }
+| "!="  { $$ = NEQUAL; }
+;
 
 exp:
   "(" exp ")"   {
@@ -204,7 +214,15 @@ expOp:
 ;
 
 expWP: // Expressions plus external ports
-  exp
+  "(" expWP ")" {
+    $$ = "(" + $2 + ")";
+  }
+| exp           {
+    $$ = $1;
+  }
+| expWP expOp expWP {
+    $$ = $1 + $2 + $3;
+  }
 | INPUT         {
     $$ = "SIG";
     driver.createSignalBlock();
@@ -221,11 +239,11 @@ boolFunction:
   }
 ;
 
-function:
-  DIFF "(" exp ")" {
-    driver.createDiffBlock($3);
-  }
-;
+//function:
+//  DIFF "(" exp ")" {
+//    driver.createDiffBlock($3);
+//  }
+//;
 
 time_range:
   lparen exp "," exp rparen {

@@ -14,8 +14,6 @@
 // ... and declare it for the parser's sake.
 YY_DECL;
 
-enum DriverStatus {HEADER, BODY, FOOTER};
-
 class STLdriver
 {
     std::ofstream outputFile;
@@ -78,5 +76,6 @@ class STLdriver
     void createConstantBlock(std::string v);
     void createSignalBlock();
     void createReferenceBlock();
+    void createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2);
 };
 #endif

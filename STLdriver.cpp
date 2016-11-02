@@ -60,23 +60,24 @@ void STLdriver::appendln(const std::string &s)
 void STLdriver::createMainTimeRange(TimeInterval t)
 {
   // TODO
-  appendln("createMainTimeRange : "
+  appendln("createMainTimeRange ["
            + (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
            + t.start + " , "
            + t.end
-           + (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]")));
+           + (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
+           + "]");
 }
 
 void STLdriver::createIsStepBlock(std::string v1, std::string v2)
 {
   // TODO
-  appendln("StepBlockCreation [" + v1 + "] [" + v2 + "]");
+  appendln("createStepBlock [" + v1 + "] [" + v2 + "]");
 }
 
 void STLdriver::createDiffBlock(std::string v)
 {
   // TODO
-  appendln("DiffBlockCreation [" + v + "]");
+  appendln("createDiffBlock [" + v + "]");
 }
 
 void STLdriver::createExpBlock()
@@ -96,17 +97,22 @@ void STLdriver::createExpBlock()
 
 void STLdriver::createConstantBlock(std::string v)
 {
-  appendln("ConstantBlock [" + v + "]");
+  appendln("createConstantBlock [" + v + "]");
 }
 
 void STLdriver::createSignalBlock()
 {
   SIG_input = true;
-  appendln("SignalBlock");
+  appendln("createSignalBlock");
 }
 
 void STLdriver::createReferenceBlock()
 {
   REF_input = true;
-  appendln("ReferenceBlock");
+  appendln("createReferenceBlock");
+}
+
+void STLdriver::createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2)
+{
+  appendln("createComparisonBlock [" + v1 + "][" + v2 + "]");
 }
