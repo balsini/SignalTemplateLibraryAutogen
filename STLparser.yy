@@ -41,16 +41,11 @@ class STLdriver;
   SLASH     "/"
 ;
 
-%left "+" "-";
-%left "*" "/";
-
 %token
   AND       "&&"
   OR        "||"
   NOT       "!"
 ;
-
-%left "&&" "||" "!";
 
 %token
   LRPAREN   "("
@@ -98,6 +93,11 @@ class STLdriver;
 %type  <TimeInterval> time_range
 %type  <Border>       lparen
 %type  <Border>       rparen
+
+%left "&&" "||";
+%left "!"
+%left "+" "-";
+%left "*" "/";
 
 %printer { yyoutput << $$; } <*>;
 
