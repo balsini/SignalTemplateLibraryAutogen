@@ -84,6 +84,8 @@ class STLdriver;
 %token <std::string>  FNUM  "floating point number"
 
 %type  <std::string>  exp
+%type  <std::string>  expOp
+%type  <std::string>  expWP
 %type  <std::string>  cmp
 %type  <std::string>  assignment
 %type  <std::string>  assignments
@@ -102,16 +104,36 @@ class STLdriver;
 
 %% /*------------------------------------------------------------------------*/
 
-parser: body footer;
+parser:
+  header  {
+    driver.appendln("---) Header DONE");
+    driver.setStatus(BODY);
+  }
+  body    {
+    driver.appendln("---) Body DONE");
+    driver.setStatus(FOOTER);
+  }
+  footer  {
+    driver.appendln("---) Footer DONE");
+  }
+;
+
+header:
+  %empty
+| header header_line
+;
+
+header_line:
+  assignments   SEMICOLON   { driver.appendln($1 + ";"); }
+;
 
 body:
   %empty
-| body line
+| body body_line
 ;
 
-line:
-  assignments SEMICOLON   { driver.appendln($1 + ";"); }
-| assertion   SEMICOLON   { driver.appendln($1 + ";"); }
+body_line:
+  assertion   SEMICOLON   { driver.appendln($1 + ";"); }
 ;
 
 assignments:
@@ -120,20 +142,18 @@ assignments:
 ;
 
 assignment:
-  VAR ASSIGN exp          { $$ = $1 + " = " + $3; driver.setVariable($1); }
-| VAR ASSIGN assignment   { $$ = $1 + " = " + $3; driver.setVariable($1); }
+  VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
+| VAR "=" assignment  { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 ;
 
 assertion:
-  ALWAYS      time_range "(" assertion_body ")" {
-    $$ = "TODO assertion1" + $4;
-    driver.createMainTemporalOperator();
-  }
-| EVENTUALLY  time_range "(" assertion_body ")" {
-    $$ = "TODO assertion2" + $4;
-    driver.createMainTemporalOperator();
+  assertionOp time_range "(" assertion_body ")" {
+    $$ = "TODO assertion" + $4;
+    driver.createMainTimeRange($2);
   }
 ;
+
+assertionOp: ALWAYS | EVENTUALLY;
 
 assertion_body:
   cmp                 { $$ = "TODO assertion_body1"; }
@@ -142,54 +162,75 @@ assertion_body:
 
 cmp:
   "(" cmp ")" {  }
-| exp GEQ exp         {  }
-| exp LEQ exp         {  }
-| exp GREATER exp     {  }
-| exp SMALLER exp     {  }
-| exp EQUAL exp       {  }
-| exp NEQUAL exp      {  }
+| expWP cmpOp expWP   {  }
 | cmp AND cmp         {  }
 | cmp OR cmp          {  }
 | NOT cmp             {  }
-| function            { $$ = "function"; }
+| boolFunction        { $$ = "function"; }
 ;
 
+cmpOp: GEQ | LEQ | GREATER | SMALLER | EQUAL | NEQUAL;
+
 exp:
-  "(" exp ")"   { $$ = " ( " + $2 + " ) "; }
-| exp "+" exp   { $$ = $1 + " + " + $3; }
-| exp "-" exp   { $$ = $1 + " - " + $3; }
-| exp "*" exp   { $$ = $1 + " * " + $3; }
-| exp "/" exp   { $$ = $1 + " / " + $3; }
-| FNUM          { $$ = $1; }
-| INUM          { $$ = $1; }
-| INPUT         {
-    $$ = "inputSignal";
-    driver.SIG_input = true;
+  "(" exp ")"   {
+    $$ = "(" + $2 + ")";
   }
-| REFERENCE     {
-    $$ = "referenceSignal";
-    driver.REF_input = true;
+| exp expOp exp {
+    $$ = $1 + $2 + $3;
+  }
+| FNUM          {
+    $$ = $1;
+    driver.createConstantBlock($1);
+  }
+| INUM          {
+    $$ = $1;
+    driver.createConstantBlock($1);
   }
 | VAR           {
-    $$ = $1;
     if (!driver.variableExists($1)) {
       error (yyla.location, "undefined variable <" + $1 + ">");
       YYABORT;
     }
+    $$ = "(" + driver.getVariable($1) + ")";
+    driver.createConstantBlock(driver.getVariable($1));
+  }
+;
+
+expOp:
+  "+"   { $$ = " + "; }
+| "-"   { $$ = " - "; }
+| "*"   { $$ = " * "; }
+| "/"   { $$ = " / "; }
+;
+
+expWP: // Expressions plus external ports
+  exp
+| INPUT         {
+    $$ = "SIG";
+    driver.createSignalBlock();
+  }
+| REFERENCE     {
+    $$ = "REF";
+    driver.createReferenceBlock();
+  }
+;
+
+boolFunction:
+  ISSTEP "(" exp "," exp ")" {
+    driver.createIsStepBlock($3, $5);
   }
 ;
 
 function:
-  ISSTEP "(" exp "," exp ")" {
-    driver.createIsStepBlock($3, $5);
-  }
-| DIFF "(" exp ")" {
+  DIFF "(" exp ")" {
     driver.createDiffBlock($3);
   }
 ;
 
 time_range:
-  lparen exp "," exp rparen { $$ = TimeInterval($2, $1, $4, $5); }
+  lparen exp "," exp rparen {
+    $$ = TimeInterval($2, $1, $4, $5);
+  }
 ;
 
 lparen:

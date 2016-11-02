@@ -5,7 +5,8 @@ STLdriver::STLdriver(char * filename) :
   trace_scanning(false),
   trace_parsing(false),
   REF_input(false),
-  SIG_input(false)
+  SIG_input(false),
+  status(HEADER)
 {
   outputFile.open(filename, std::ofstream::out);
   if (outputFile.is_open()) {
@@ -56,10 +57,14 @@ void STLdriver::appendln(const std::string &s)
   outputFile << std::endl;
 }
 
-void STLdriver::createMainTemporalOperator()
+void STLdriver::createMainTimeRange(TimeInterval t)
 {
   // TODO
-  appendln("MainTemporalOperator");
+  appendln("createMainTimeRange : "
+           + (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
+           + t.start + " , "
+           + t.end
+           + (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]")));
 }
 
 void STLdriver::createIsStepBlock(std::string v1, std::string v2)
@@ -87,4 +92,21 @@ void STLdriver::createExpBlock()
     // TODO add REF port
     REF_input = false;
   }
+}
+
+void STLdriver::createConstantBlock(std::string v)
+{
+  appendln("ConstantBlock [" + v + "]");
+}
+
+void STLdriver::createSignalBlock()
+{
+  SIG_input = true;
+  appendln("SignalBlock");
+}
+
+void STLdriver::createReferenceBlock()
+{
+  REF_input = true;
+  appendln("ReferenceBlock");
 }

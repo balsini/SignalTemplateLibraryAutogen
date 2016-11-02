@@ -14,21 +14,36 @@
 // ... and declare it for the parser's sake.
 YY_DECL;
 
+enum DriverStatus {HEADER, BODY, FOOTER};
+
 class STLdriver
 {
     std::ofstream outputFile;
 
-    std::map<std::string, bool> variablesSet;
+    std::map<std::string, std::string> variablesValues;
+
+    bool REF_input;
+    bool SIG_input;
+
+    DriverStatus status;
 
   public:
     STLdriver (char *filename);
     virtual ~STLdriver();
 
     bool variableExists(std::string v) {
-      return (variablesSet.find(v) != variablesSet.end());
+      return (variablesValues.find(v) != variablesValues.end());
     }
-    void setVariable(std::string v) {
-      variablesSet[v] = true;
+    void setVariable(std::string name, std::string value) {
+      variablesValues[name] = value;
+    }
+    std::string getVariable(std::string name) {
+      return variablesValues[name];
+    }
+
+    void setStatus(DriverStatus s)
+    {
+      status = s;
     }
 
     // Run the parser on file F.
@@ -56,12 +71,12 @@ class STLdriver
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    bool REF_input;
-    bool SIG_input;
-
-    void createMainTemporalOperator();
+    void createMainTimeRange(TimeInterval t);
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
     void createExpBlock();
+    void createConstantBlock(std::string v);
+    void createSignalBlock();
+    void createReferenceBlock();
 };
 #endif

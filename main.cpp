@@ -13,11 +13,11 @@ int main(int argc, char *argv[])
     }
 
     //driver.trace_parsing = true;
-    driver.trace_scanning = true;
+    //driver.trace_scanning = true;
 
     res = driver.parse(argv[1]);
 
-    std::cout << "Parser results: " << res << std::endl;
+    std::cout << std::endl << "Parser results: " << res << std::endl;
 
     return res;
 }

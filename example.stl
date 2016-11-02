@@ -1,3 +1,7 @@
+///////////////////////////////////
+// Definition of constant values //
+///////////////////////////////////
+
 T = 1;
 T2 = T;
 range = (0.3 + T) * 1.1;
@@ -6,6 +10,10 @@ stepSize = 5;
 
 max = stepSize + range;
 min = stepSize - range;
+
+//////////////////////////////
+// Definition of assertions //
+//////////////////////////////
 
 //[] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 
@@ -19,4 +27,4 @@ min = stepSize - range;
 [] [0 , T] (isStep(SIG, stepSize) && SIG - REF < max);
 */
 
-[] [0 , T] (SIG < 1);
+[] (0 , T] (SIG < 1);
