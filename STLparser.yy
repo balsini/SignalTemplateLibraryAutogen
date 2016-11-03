@@ -9,7 +9,7 @@
 {
 #include <string>
 #include <utility.h>
-class STLdriver;
+  class STLdriver;
 }
 // The parsing context.
 %param { STLdriver &driver }
@@ -27,56 +27,56 @@ class STLdriver;
 }
 %define api.token.prefix {TOK_}
 %token
-  END  0    "end of file"
-  ASSIGN    "="
-  INFINITY  "infty"
-  COMMA     ","
-  SEMICOLON ";"
+END  0    "end of file"
+ASSIGN    "="
+INFINITY  "infty"
+COMMA     ","
+SEMICOLON ";"
 ;
 
 %token
-  MINUS     "-"
-  PLUS      "+"
-  STAR      "*"
-  SLASH     "/"
+MINUS     "-"
+PLUS      "+"
+STAR      "*"
+SLASH     "/"
 ;
 
 %token
-  AND       "&&"
-  OR        "||"
-  NOT       "!"
+AND       "&&"
+OR        "||"
+NOT       "!"
 ;
 
 %token
-  LRPAREN   "("
-  RRPAREN   ")"
-  LSPAREN   "["
-  RSPAREN   "]"
+LRPAREN   "("
+RRPAREN   ")"
+LSPAREN   "["
+RSPAREN   "]"
 ;
 
 %token
-  ALWAYS      "[]"
-  EVENTUALLY  "<>"
-  UNTIL       "U"
+ALWAYS      "[]"
+EVENTUALLY  "<>"
+UNTIL       "U"
 ;
 
 %token
-  GEQ       ">="
-  LEQ       "<="
-  GREATER   ">"
-  SMALLER   "<"
-  EQUAL     "=="
-  NEQUAL    "!="
+GEQ       ">="
+LEQ       "<="
+GREATER   ">"
+SMALLER   "<"
+EQUAL     "=="
+NEQUAL    "!="
 ;
 
 %token
-  INPUT           "SIG"
-  REFERENCE       "REF"
+INPUT           "SIG"
+REFERENCE       "REF"
 ;
 
 %token
-  ISSTEP      "isStep"
-  DIFF        "diff"
+ISSTEP      "isStep"
+DIFF        "diff"
 ;
 
 %token <std::string>  VAR   "identifier"
@@ -107,66 +107,66 @@ class STLdriver;
 %% /*------------------------------------------------------------------------*/
 
 parser:
-  header  {
-    driver.appendln("-) Header DONE");
-    driver.setStatus(BODY);
-  }
-  body    {
-    driver.appendln("-) Body DONE");
-    driver.setStatus(FOOTER);
-  }
-  footer  {
-    driver.appendln("-) Footer DONE");
-  }
+header  {
+  driver.appendln("-) Header DONE");
+  driver.setStatus(BODY);
+}
+body    {
+  driver.appendln("-) Body DONE");
+  driver.setStatus(FOOTER);
+}
+footer  {
+  driver.appendln("-) Footer DONE");
+}
 ;
 
 header:
-  %empty
+%empty
 | header header_line
 ;
 
 header_line:
-  assignments   SEMICOLON  // { driver.appendln($1); }
+assignments   SEMICOLON  // { driver.appendln($1); }
 ;
 
 body:
-  %empty
+%empty
 | body body_line
 ;
 
 body_line:
-  assertion   SEMICOLON  // { driver.appendln($1); }
+assertion   SEMICOLON  // { driver.appendln($1); }
 ;
 
 assignments:
-  assignments assignment  { $$ = $1 + $2; }
+assignments assignment  { $$ = $1 + $2; }
 | assignment              { $$ = $1; }
 ;
 
 assignment:
-  VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
+VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 | VAR "=" assignment  { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 ;
 
 assertion:
-  assertionOp time_range "(" assertion_body ")" {
-    $$ = "TODO assertion" + $4;
-    driver.createMainTimeRange($2);
-  }
+assertionOp time_range "(" assertion_body ")" {
+  $$ = "TODO assertion" + $4;
+  driver.createMainTimeRange($2);
+}
 ;
 
 assertionOp: ALWAYS | EVENTUALLY;
 
 assertion_body:
-  cmp                 { $$ = "TODO assertion_body1"; }
+cmp                 { $$ = "TODO assertion_body1"; }
 | assertion_body cmp  { $$ = "TODO assertion_body2"; }
 ;
 
 cmp:
-  "(" cmp ")" {  }
+"(" cmp ")" {  }
 | expWP cmpOp expWP   {
-    driver.createComparisonBlock($2, $1, $3);
-  }
+  driver.createComparisonBlock($2, $1, $3);
+}
 | cmp AND cmp         {  }
 | cmp OR cmp          {  }
 | NOT cmp             {  }
@@ -174,7 +174,7 @@ cmp:
 ;
 
 cmpOp:
-  ">="  { $$ = GEQ; }
+">="  { $$ = GEQ; }
 | "<="  { $$ = LEQ; }
 | ">"   { $$ = GREATER; }
 | "<"   { $$ = SMALLER; }
@@ -183,101 +183,101 @@ cmpOp:
 ;
 
 exp:
-  "(" exp ")"   {
-    $$ = "(" + $2 + ")";
-  }
+"(" exp ")"   {
+  $$ = "(" + $2 + ")";
+}
 | exp "+" exp {
-    $$ = $1 + "+" + $3;
-    driver.createMathBlock(SUM, $1, $3);
-  }
+  $$ = $1 + "+" + $3;
+  driver.createMathBlock(SUM, $1, $3);
+}
 | exp "-" exp {
-    $$ = $1 + "-" + $3;
-    driver.createMathBlock(SUB, $1, $3);
-  }
+  $$ = $1 + "-" + $3;
+  driver.createMathBlock(SUB, $1, $3);
+}
 | exp2 { $$ = $1; }
 ;
 
 exp2:
-  exp "*" exp {
-    $$ = $1 + "+" + $3;
-    driver.createMathBlock(MUL, $1, $3);
-  }
+exp "*" exp {
+  $$ = $1 + "*" + $3;
+  driver.createMathBlock(MUL, $1, $3);
+}
 | exp "/" exp {
-    $$ = $1 + "+" + $3;
-    driver.createMathBlock(DIV, $1, $3);
-  }
+  $$ = $1 + "/" + $3;
+  driver.createMathBlock(DIV, $1, $3);
+}
 | FNUM          {
-    $$ = $1;
-    driver.createConstantBlock($1);
-  }
+  $$ = $1;
+  driver.createConstantBlock($1);
+}
 | INUM          {
-    $$ = $1;
-    driver.createConstantBlock($1);
-  }
+  $$ = $1;
+  driver.createConstantBlock($1);
+}
 | VAR           {
-    if (!driver.variableExists($1)) {
-      error (yyla.location, "undefined variable <" + $1 + ">");
-      YYABORT;
-    }
-    $$ = "(" + driver.getVariable($1) + ")";
-    driver.createConstantBlock(driver.getVariable($1));
+  if (!driver.variableExists($1)) {
+    error (yyla.location, "undefined variable <" + $1 + ">");
+    YYABORT;
   }
+  $$ = "(" + driver.getVariable($1) + ")";
+  driver.createConstantBlock(driver.getVariable($1));
+}
 ;
 
 expWP: // Expressions plus external ports
-  "(" expWP ")" {
-    $$ = "(" + $2 + ")";
-  }
+"(" expWP ")" {
+  $$ = "(" + $2 + ")";
+}
 | expWP "+" expWP {
-    $$ = $1 + "+" + $3;
-    driver.createMathBlock(SUM, $1, $3);
-  }
+  $$ = $1 + "+" + $3;
+  driver.createMathBlock(SUM, $1, $3);
+}
 | expWP "-" expWP {
-    $$ = $1 + "-" + $3;
-    driver.createMathBlock(SUB, $1, $3);
-  }
+  $$ = $1 + "-" + $3;
+  driver.createMathBlock(SUB, $1, $3);
+}
 | expWP2 { $$ = $1; }
 ;
 
 expWP2: // Expressions plus external ports
-  expWP "*" expWP {
-    $$ = $1 + "*" + $3;
-    driver.createMathBlock(MUL, $1, $3);
-  }
+expWP "*" expWP {
+  $$ = $1 + "*" + $3;
+  driver.createMathBlock(MUL, $1, $3);
+}
 | expWP "/" expWP {
-    $$ = $1 + "/" + $3;
-    driver.createMathBlock(DIV, $1, $3);
-  }
+  $$ = $1 + "/" + $3;
+  driver.createMathBlock(DIV, $1, $3);
+}
 | INPUT         {
-    $$ = "SIG";
-    driver.createSignalBlock();
-  }
+  $$ = "SIG";
+  driver.createSignalBlock();
+}
 | REFERENCE     {
-    $$ = "REF";
-    driver.createReferenceBlock();
-  }
+  $$ = "REF";
+  driver.createReferenceBlock();
+}
 | FNUM          {
-    $$ = $1;
-    driver.createConstantBlock($1);
-  }
+  $$ = $1;
+  driver.createConstantBlock($1);
+}
 | INUM          {
-    $$ = $1;
-    driver.createConstantBlock($1);
-  }
+  $$ = $1;
+  driver.createConstantBlock($1);
+}
 | VAR           {
-    if (!driver.variableExists($1)) {
-      error (yyla.location, "undefined variable <" + $1 + ">");
-      YYABORT;
-    }
-    $$ = "(" + driver.getVariable($1) + ")";
-    driver.createConstantBlock(driver.getVariable($1));
+  if (!driver.variableExists($1)) {
+    error (yyla.location, "undefined variable <" + $1 + ">");
+    YYABORT;
   }
+  $$ = "(" + driver.getVariable($1) + ")";
+  driver.createConstantBlock(driver.getVariable($1));
+}
 ;
 
 boolFunction:
-  ISSTEP "(" exp "," exp ")" {
-    driver.createIsStepBlock($3, $5);
-  }
+ISSTEP "(" exp "," exp ")" {
+  driver.createIsStepBlock($3, $5);
+}
 ;
 
 //function:
@@ -287,23 +287,23 @@ boolFunction:
 //;
 
 time_range:
-  lparen exp "," exp rparen {
-    $$ = TimeInterval($2, $1, $4, $5);
-  }
+lparen exp "," exp rparen {
+  $$ = TimeInterval($2, $1, $4, $5);
+}
 ;
 
 lparen:
-  "(" { $$ = INTERVAL_OPEN; }
+"(" { $$ = INTERVAL_OPEN; }
 | "[" { $$ = INTERVAL_CLOSED; }
 ;
 
 rparen:
-  ")" { $$ = INTERVAL_OPEN; }
+")" { $$ = INTERVAL_OPEN; }
 | "]" { $$ = INTERVAL_CLOSED; }
 ;
 
 footer:
-  END
+END
 ;
 
 %% /*------------------------------------------------------------------------*/
