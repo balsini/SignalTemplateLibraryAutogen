@@ -84,8 +84,9 @@ class STLdriver;
 %token <std::string>  FNUM  "floating point number"
 
 %type  <std::string>  exp
-%type  <MathOperator> expOp
+%type  <std::string>  exp2
 %type  <std::string>  expWP
+%type  <std::string>  expWP2
 %type  <std::string>  cmp
 %type  <ComparisonOperator> cmpOp
 %type  <std::string>  assignment
@@ -107,15 +108,15 @@ class STLdriver;
 
 parser:
   header  {
-    driver.appendln("---) Header DONE");
+    driver.appendln("-) Header DONE");
     driver.setStatus(BODY);
   }
   body    {
-    driver.appendln("---) Body DONE");
+    driver.appendln("-) Body DONE");
     driver.setStatus(FOOTER);
   }
   footer  {
-    driver.appendln("---) Footer DONE");
+    driver.appendln("-) Footer DONE");
   }
 ;
 
@@ -185,9 +186,25 @@ exp:
   "(" exp ")"   {
     $$ = "(" + $2 + ")";
   }
-| exp expOp exp {
-    $$ = $1 + " " + $3;
-    driver.createMathBlock($2, $1, $3);
+| exp "+" exp {
+    $$ = $1 + "+" + $3;
+    driver.createMathBlock(SUM, $1, $3);
+  }
+| exp "-" exp {
+    $$ = $1 + "-" + $3;
+    driver.createMathBlock(SUB, $1, $3);
+  }
+| exp2 { $$ = $1; }
+;
+
+exp2:
+  exp "*" exp {
+    $$ = $1 + "+" + $3;
+    driver.createMathBlock(MUL, $1, $3);
+  }
+| exp "/" exp {
+    $$ = $1 + "+" + $3;
+    driver.createMathBlock(DIV, $1, $3);
   }
 | FNUM          {
     $$ = $1;
@@ -207,23 +224,29 @@ exp:
   }
 ;
 
-expOp:
-  "+"   { $$ = SUM; }
-| "-"   { $$ = SUB; }
-| "*"   { $$ = MUL; }
-| "/"   { $$ = DIV; }
-;
-
 expWP: // Expressions plus external ports
   "(" expWP ")" {
     $$ = "(" + $2 + ")";
   }
-| exp           {
-    $$ = $1;
+| expWP "+" expWP {
+    $$ = $1 + "+" + $3;
+    driver.createMathBlock(SUM, $1, $3);
   }
-| expWP expOp expWP {
-    $$ = $1 + " " + $3;
-    driver.createMathBlock($2, $1, $3);
+| expWP "-" expWP {
+    $$ = $1 + "-" + $3;
+    driver.createMathBlock(SUB, $1, $3);
+  }
+| expWP2 { $$ = $1; }
+;
+
+expWP2: // Expressions plus external ports
+  expWP "*" expWP {
+    $$ = $1 + "*" + $3;
+    driver.createMathBlock(MUL, $1, $3);
+  }
+| expWP "/" expWP {
+    $$ = $1 + "/" + $3;
+    driver.createMathBlock(DIV, $1, $3);
   }
 | INPUT         {
     $$ = "SIG";
@@ -232,6 +255,22 @@ expWP: // Expressions plus external ports
 | REFERENCE     {
     $$ = "REF";
     driver.createReferenceBlock();
+  }
+| FNUM          {
+    $$ = $1;
+    driver.createConstantBlock($1);
+  }
+| INUM          {
+    $$ = $1;
+    driver.createConstantBlock($1);
+  }
+| VAR           {
+    if (!driver.variableExists($1)) {
+      error (yyla.location, "undefined variable <" + $1 + ">");
+      YYABORT;
+    }
+    $$ = "(" + driver.getVariable($1) + ")";
+    driver.createConstantBlock(driver.getVariable($1));
   }
 ;
 

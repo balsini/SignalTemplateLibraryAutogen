@@ -5,6 +5,7 @@
 T = 1;
 T2 = T;
 range = (0.3 + T) * 1.1;
+range2 = 0.3 * T + 1.1;
 
 stepSize = 5;
 
@@ -27,4 +28,4 @@ min = stepSize - range;
 [] [0 , T] (isStep(SIG, stepSize) && SIG - REF < max);
 */
 
-[] (0 , T] (SIG < REF + 1 * 2);
+[] (0 , T] (SIG + 4 < REF + 11 * 22 + 6);
