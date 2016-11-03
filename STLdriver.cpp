@@ -121,3 +121,18 @@ void STLdriver::createMathBlock(MathOperator op, std::string v1, std::string v2)
 {
   appendln("createMathBlock [" + v1 + "][" + v2 + "]");
 }
+
+bool STLdriver::variableExists(std::string v) {
+  return (variablesValues.find(v) != variablesValues.end());
+}
+void STLdriver::setVariable(std::string name, std::string value) {
+  variablesValues[name] = value;
+}
+std::string STLdriver::getVariable(std::string name) {
+  return variablesValues[name];
+}
+
+void STLdriver::setStatus(DriverStatus s)
+{
+  status = s;
+}

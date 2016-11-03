@@ -29,20 +29,11 @@ class STLdriver
     STLdriver (char *filename);
     virtual ~STLdriver();
 
-    bool variableExists(std::string v) {
-      return (variablesValues.find(v) != variablesValues.end());
-    }
-    void setVariable(std::string name, std::string value) {
-      variablesValues[name] = value;
-    }
-    std::string getVariable(std::string name) {
-      return variablesValues[name];
-    }
+    bool variableExists(std::string v);
+    void setVariable(std::string name, std::string value);
+    std::string getVariable(std::string name);
 
-    void setStatus(DriverStatus s)
-    {
-      status = s;
-    }
+    void setStatus(DriverStatus s);
 
     // Run the parser on file F.
     // Return 0 on success.
