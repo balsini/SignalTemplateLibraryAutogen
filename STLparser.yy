@@ -112,16 +112,16 @@ DIFF        "diff"
 
 parser:
 header  {
-  driver.appendln("-) Header DONE");
+  std::cout << "-) Header DONE" << std::endl;
   driver.printConstantValues();
   driver.setStatus(BODY);
 }
 body    {
-  driver.appendln("-) Body DONE");
+  std::cout << "-) Body DONE" << std::endl;
   driver.setStatus(FOOTER);
 }
 footer  {
-  driver.appendln("-) Footer DONE");
+  std::cout << "-) Footer DONE" << std::endl;
 }
 ;
 
@@ -131,7 +131,7 @@ header:
 ;
 
 header_line:
-assignments   SEMICOLON  // { driver.appendln($1); }
+assignments   SEMICOLON
 ;
 
 body:
@@ -140,7 +140,7 @@ body:
 ;
 
 body_line:
-assertion   SEMICOLON  // { driver.appendln($1); }
+assertion   SEMICOLON
 ;
 
 assignments:

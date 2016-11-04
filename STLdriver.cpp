@@ -59,19 +59,17 @@ void STLdriver::appendln(const std::string &s)
 
 void STLdriver::createIsStepBlock(std::string v1, std::string v2)
 {
-  // TODO
-  appendln("createStepBlock [" + v1 + "] [" + v2 + "]");
+  std::cout << "createStepBlock [" + v1 + "] [" + v2 + "]" << std::endl;
 }
 
 void STLdriver::createDiffBlock(std::string v)
 {
-  // TODO
-  appendln("createDiffBlock [" + v + "]");
+  std::cout << "createDiffBlock [" + v + "]" << std::endl;
 }
 
 void STLdriver::createExpressionBlock()
 {
-  appendln("--------) ExpressionBlock");
+  std::cout << "--------) ExpressionBlock" << std::endl;
 
   if (SIG_input) {
     // TODO add SIG port
@@ -86,24 +84,24 @@ void STLdriver::createExpressionBlock()
 
 void createConstantBlock(std::string v)
 {
-  //appendln("------------) createConstantBlock [" + v + "]");
+  std::cout << "------------) createConstantBlock" << std::endl;
 }
 
 void STLdriver::createSignalBlock()
 {
   SIG_input = true;
-  appendln("------------) createSignalBlock");
+  std::cout << "------------) createSignalBlock" << std::endl;
 }
 
 void STLdriver::createReferenceBlock()
 {
   REF_input = true;
-  appendln("------------) createReferenceBlock");
+  std::cout << "------------) createReferenceBlock" << std::endl;
 }
 
 ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, MathOperation *a, MathOperation *b)
 {
-  appendln("------) createComparisonBlock");
+  std::cout << "------) createComparisonBlock" << std::endl;
   //createExpression(a);
   //createExpression(b);
 
@@ -114,10 +112,9 @@ ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, Ma
 
   return c;
 }
-
 MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, MathOperation *b)
 {
-  appendln("----------) createMathBlock");
+  std::cout << "----------) createMathBlock" << std::endl;
 
   MathOperation * m = new MathOperation;
   m->op = op;
@@ -129,7 +126,7 @@ MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, Ma
 
 LogicalOperation * STLdriver::createLogicalBlock(LogicalOperator op, LogicalOperation *a, LogicalOperation *b)
 {
-  appendln("----------) createMathBlock");
+  std::cout << "----------) createMathBlock" << std::endl;
 
   LogicalOperation * l = new LogicalOperation;
   l->op = op;
@@ -230,27 +227,85 @@ std::string STLdriver::createExpression(MathOperation * e)
   return expression_name;
 }
 
-std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string parent)
+std::string STLdriver::createComparisonBody()
 {
+  /*
+  // Insert comparison in (this) subsystem
+
+  appendln(ass_name + "_A = addEmptySubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'A');");
+  appendln(ass_name + "_B = addEmptySubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'B');");
+  appendln("set_param(" + ass_name + "_A,'position',[60, " + std::to_string(vpos) + ", 80, " + std::to_string(vpos + 20) + "])");
+  appendln("set_param(" + ass_name + "_B,'position',[60, " + std::to_string(vpos + 40) + ", 80, " + std::to_string(vpos + 20 + 40) + "])");
+
+  appendln("addCmpSubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'OP', '" + ass_name_OP +  "', '" + ass_name + "_A', '" + ass_name + "_B');");
+  */
+  return "";
+}
+
+std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
+{
+  unsigned int vpos;
+  unsigned int hpos;
   static unsigned int ass_num = 0;
   std::string ass_name = "Ass_" + std::to_string(ass_num++);
+  std::string root_name = "TEST";
+
+  vpos = 40 * y + 20;
+  hpos = 40 * x + 20;
 
   if (l->op == COMPARISON) {
     // Create block containing comparison expression
 
+    appendln(ass_name + " = addEmptySubsystem([" + root_name + " '" + parent + "'], '" + ass_name + "');");
+    appendln("set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "])");
+
+    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+
+  } else {// AND, OR
+    //////////////////////////
+    // Create logical block //
+    //////////////////////////
+
     // Create empty subsystem (this)
-    appendln(ass_name + " = addEmptySubsystem(SYSTEM, NAME);");
+    std::string par = "";
+    if (parent == "")
+      par = root_name;
+    else
+      par = "[" + root_name + " '" + parent + "']";
 
-    appendln(ass_name + "_A = addEmptySubsystem([SYSTEM '/" + ass_name + "_A'], 'A');");
-    appendln(ass_name + "_B = addEmptySubsystem([SYSTEM '/" + ass_name + "_B'], 'B');");
+    appendln(ass_name + " = addEmptySubsystem(" + par + ", '" + ass_name + "');");
+    appendln("set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
 
-    // Insert comparison in (this) subsystem
-    appendln("addCmpSubsystem(SYSTEM/" + ass_name + " , " + ass_name +  ", '<=' , a , b);");
+    std::string A = createAssertionBody(l->a, parent + "/" + ass_name, x + 1, y);
+    std::string B = createAssertionBody(l->b, parent + "/" + ass_name, x + 1, y + 1);
 
-  } else {// AND, OR, NOT
-    // Create logical block
-    createAssertionBody(l->a);
-    createAssertionBody(l->b);
+    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "]);");
+
+    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
+    appendln("set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+
+    std::string logOp;
+    switch (l->op) {
+      case AND:
+        logOp = "AND";
+        break;
+      case OR:
+        logOp = "OR";
+        break;
+      default: break;
+    }
+    appendln("set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
+
+    appendln("OutPort1 = get_param(" + A + ",'PortHandles');");
+    appendln("OutPort2 = get_param(" + B + ",'PortHandles');");
+    appendln("OutPort3 = get_param(" + ass_name + "_OP,'PortHandles');");
+    appendln("InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
+    appendln("InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
+    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
+    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
+    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
   }
 
   std::cout << std::endl;
@@ -266,11 +321,11 @@ void foundConstantBlock(std::string v)
 void foundMainTimeRange(TimeInterval t)
 {
   std::cout << "----) foundMainTimeRange ["
-           << (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
-           << t.start << " , "
-           << t.end
-           << (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
-           << "]" << std::endl;
+            << (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
+            << t.start << " , "
+            << t.end
+            << (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
+            << "]" << std::endl;
 }
 
 void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2)
