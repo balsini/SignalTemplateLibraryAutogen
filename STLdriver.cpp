@@ -122,9 +122,16 @@ void STLdriver::createComparisonExpression(BooleanOperator op, std::string v1, s
   appendln("------) createComparisonExpression [" + v1 + "][" + v2 + "]");
 }
 
-void STLdriver::createMathBlock(MathOperator op, std::string v1, std::string v2)
+MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, MathOperation *b)
 {
-  appendln("----------) createMathBlock [" + v1 + "][" + v2 + "]");
+  appendln("----------) createMathBlock");
+
+  MathOperation * m = new MathOperation;
+  m->op = op;
+  m->a = a;
+  m->b = b;
+
+  return m;
 }
 
 void STLdriver::createAssertionBody()
@@ -203,4 +210,20 @@ void STLdriver::printAssertions()
   }
 
   std::cout << "--------------------------" << std::endl;
+}
+
+void createExpression(MathOperation * e)
+{
+  switch (e->op) {
+    case SUM:
+      break;
+    case SUB:
+      break;
+    case MUL:
+      break;
+    case DIV:
+      break;
+    default:
+      break;
+  }
 }

@@ -86,9 +86,9 @@ DIFF        "diff"
 %type  <std::string>  exp
 %type  <std::string>  exp2
 %type  <std::string>  expWP
-%type  <std::string>  expWP1
-%type  <std::string>  expWP2
-%type  <std::string>  expWP3
+%type  <MathOperation *>  expWP1
+%type  <MathOperation *>  expWP2
+%type  <MathOperation *>  expWP3
 %type  <std::string>  cmp
 %type  <BooleanOperator>  boolOp
 %type  <ComparisonOperator> cmpOp
@@ -162,14 +162,14 @@ assertionOp time_range "(" assertion_body ")" {
 assertionOp: ALWAYS | EVENTUALLY;
 
 assertion_body:
-  cmp                 {
-    $$ = "TODO assertion_body1";
-    driver.createAssertionBody();
-  }
+cmp                 {
+  $$ = "TODO assertion_body1";
+  driver.createAssertionBody();
+}
 | assertion_body cmp  {
-    $$ = "TODO assertion_body2";
-    //driver.createComparisonBlock(GEQ, $1, "ASS B 2");
-  }
+  $$ = "TODO assertion_body2";
+  //driver.createComparisonBlock(GEQ, $1, "ASS B 2");
+}
 ;
 
 cmp:
@@ -181,7 +181,7 @@ cmp:
 ;
 
 boolOp:
-  AND { $$ = AND; }
+AND { $$ = AND; }
 | OR  { $$ = OR; }
 ;
 
@@ -230,54 +230,56 @@ exp "*" exp {
 ;
 
 expWP:
-  expWP1 {
-    $$ = $1;
-    driver.createExpressionBlock();
-  }
+expWP1 {
+  //$$ = $1;
+  $$ = " expWP ";
+  driver.createExpressionBlock();
+  createExpression($1);
+}
 ;
 
 expWP1: // Expressions plus external ports
 "(" expWP1 ")" {
-  $$ = "(" + $2 + ")";
+  $$ = $2;
 }
 | expWP1 "+" expWP1 {
-  $$ = $1 + "+" + $3;
-  driver.createMathBlock(SUM, $1, $3);
+  $$ = driver.createMathBlock(SUM, $1, $3);
 }
 | expWP1 "-" expWP1 {
-  $$ = $1 + "-" + $3;
-  driver.createMathBlock(SUB, $1, $3);
+  $$ = driver.createMathBlock(SUB, $1, $3);
 }
 | expWP2 { $$ = $1; }
 ;
 
 expWP2: // Expressions plus external ports
 expWP1 "*" expWP1 {
-  $$ = $1 + "*" + $3;
-  driver.createMathBlock(MUL, $1, $3);
+  $$ = driver.createMathBlock(MUL, $1, $3);
 }
 | expWP1 "/" expWP1 {
-  $$ = $1 + "/" + $3;
-  driver.createMathBlock(DIV, $1, $3);
+  $$ = driver.createMathBlock(DIV, $1, $3);
 }
-| expWP3 { $$ = $1; }
+| expWP3 {
+  $$ = $1;
+}
 ;
 
 expWP3:
-  INPUT         {
-  $$ = "SIG";
+INPUT         {
+  $$ = driver.createMathBlock(SIG);
   driver.createSignalBlock();
 }
 | REFERENCE     {
-  $$ = "REF";
+  $$ = driver.createMathBlock(REF);
   driver.createReferenceBlock();
 }
 | FNUM          {
-  $$ = $1;
+  $$ = driver.createMathBlock(CONST);
+  $$->value = $1;
   driver.createConstantBlock($1);
 }
 | INUM          {
-  $$ = $1;
+  $$ = driver.createMathBlock(CONST);
+  $$->value = $1;
   driver.createConstantBlock($1);
 }
 | VAR           {
@@ -285,7 +287,9 @@ expWP3:
     error (yyla.location, "undefined variable <" + $1 + ">");
     YYABORT;
   }
-  $$ = "(" + driver.getVariable($1) + ")";
+  //$$ = "(" + driver.getVariable($1) + ")";
+  $$ = driver.createMathBlock(CONST);
+  $$->value = driver.getVariable($1);
   driver.createConstantBlock(driver.getVariable($1));
 }
 ;

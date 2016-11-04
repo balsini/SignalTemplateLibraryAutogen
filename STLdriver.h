@@ -74,7 +74,10 @@ class STLdriver
     void createReferenceBlock();
     void createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2);
     void createComparisonExpression(BooleanOperator op, std::string v1, std::string v2 = "");
-    void createMathBlock(MathOperator op, std::string v1, std::string v2);
+    MathOperation * createMathBlock(MathOperator op, MathOperation *a = nullptr, MathOperation *b = nullptr);
     void createAssertionBody();
 };
+
+void createExpression(MathOperation * e);
+
 #endif
