@@ -44,8 +44,9 @@ SLASH     "/"
 %token
 AND       "&&"
 OR        "||"
-NOT       "!"
 ;
+
+%token    NOT "<!> (to be implemented)"
 
 %token
 LRPAREN   "("

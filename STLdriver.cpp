@@ -215,7 +215,7 @@ void STLdriver::printAssertions()
 std::string STLdriver::createExpression(MathOperation * e)
 {
   static unsigned int exp_num = 0;
-  std::string expression_name = "Exp_" + std::to_string(exp_num);
+  std::string expression_name = "Exp_" + std::to_string(exp_num++);
 
   if (e->op == CONST) {
     // Create block containing constant value
@@ -225,16 +225,37 @@ std::string STLdriver::createExpression(MathOperation * e)
     // Create mathematical block
   }
 
-  ++exp_num;
-
   std::cout << expression_name << std::endl;
 
   return expression_name;
 }
 
-void STLdriver::createAssertionBody(LogicalOperation *l)
+std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string parent)
 {
-  std::cout << "----) foundAssertionBody" << std::endl;
+  static unsigned int ass_num = 0;
+  std::string ass_name = "Ass_" + std::to_string(ass_num++);
+
+  if (l->op == COMPARISON) {
+    // Create block containing comparison expression
+
+    // Create empty subsystem (this)
+    appendln(ass_name + " = addEmptySubsystem(SYSTEM, NAME);");
+
+    appendln(ass_name + "_A = addEmptySubsystem([SYSTEM '/" + ass_name + "_A'], 'A');");
+    appendln(ass_name + "_B = addEmptySubsystem([SYSTEM '/" + ass_name + "_B'], 'B');");
+
+    // Insert comparison in (this) subsystem
+    appendln("addCmpSubsystem(SYSTEM/" + ass_name + " , " + ass_name +  ", '<=' , a , b);");
+
+  } else {// AND, OR, NOT
+    // Create logical block
+    createAssertionBody(l->a);
+    createAssertionBody(l->b);
+  }
+
+  std::cout << std::endl;
+
+  return ass_name;
 }
 
 void foundConstantBlock(std::string v)

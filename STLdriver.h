@@ -65,7 +65,7 @@ class STLdriver
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    void createAssertionBody(LogicalOperation *l);
+    std::string createAssertionBody(LogicalOperation *l, std::string parent = "");
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
     void createExpressionBlock();
