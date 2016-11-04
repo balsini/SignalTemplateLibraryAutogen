@@ -2,8 +2,10 @@
 #define STL_DRIVER_H
 
 #include <string>
+#include <sstream>
 #include <fstream>
 #include <map>
+#include <list>
 
 #include <STLparser.hh>
 #include <utility.h>
@@ -35,6 +37,9 @@ class STLdriver
 
     void setStatus(DriverStatus s);
 
+    void printConstantValues();
+    void printAssertions();
+
     // Run the parser on file F.
     // Return 0 on success.
     int parse(const std::string& f);
@@ -63,11 +68,13 @@ class STLdriver
     void createMainTimeRange(TimeInterval t);
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
-    void createExpBlock();
+    void createExpressionBlock();
     void createConstantBlock(std::string v);
     void createSignalBlock();
     void createReferenceBlock();
     void createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2);
+    void createComparisonExpression(BooleanOperator op, std::string v1, std::string v2 = "");
     void createMathBlock(MathOperator op, std::string v1, std::string v2);
+    void createAssertionBody();
 };
 #endif

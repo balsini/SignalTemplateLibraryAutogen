@@ -86,8 +86,11 @@ DIFF        "diff"
 %type  <std::string>  exp
 %type  <std::string>  exp2
 %type  <std::string>  expWP
+%type  <std::string>  expWP1
 %type  <std::string>  expWP2
+%type  <std::string>  expWP3
 %type  <std::string>  cmp
+%type  <BooleanOperator>  boolOp
 %type  <ComparisonOperator> cmpOp
 %type  <std::string>  assignment
 %type  <std::string>  assignments
@@ -109,6 +112,7 @@ DIFF        "diff"
 parser:
 header  {
   driver.appendln("-) Header DONE");
+  driver.printConstantValues();
   driver.setStatus(BODY);
 }
 body    {
@@ -158,19 +162,27 @@ assertionOp time_range "(" assertion_body ")" {
 assertionOp: ALWAYS | EVENTUALLY;
 
 assertion_body:
-cmp                 { $$ = "TODO assertion_body1"; }
-| assertion_body cmp  { $$ = "TODO assertion_body2"; }
+  cmp                 {
+    $$ = "TODO assertion_body1";
+    driver.createAssertionBody();
+  }
+| assertion_body cmp  {
+    $$ = "TODO assertion_body2";
+    //driver.createComparisonBlock(GEQ, $1, "ASS B 2");
+  }
 ;
 
 cmp:
 "(" cmp ")" {  }
-| expWP cmpOp expWP   {
-  driver.createComparisonBlock($2, $1, $3);
-}
-| cmp AND cmp         {  }
-| cmp OR cmp          {  }
-| NOT cmp             {  }
+| expWP cmpOp expWP   { driver.createComparisonBlock($2, $1, $3); }
+| cmp boolOp cmp      { driver.createComparisonExpression($2, $1, $3); }
+| NOT cmp             { driver.createComparisonExpression(NOT, $2); }
 | boolFunction        { $$ = "function"; }
+;
+
+boolOp:
+  AND { $$ = AND; }
+| OR  { $$ = OR; }
 ;
 
 cmpOp:
@@ -188,11 +200,9 @@ exp:
 }
 | exp "+" exp {
   $$ = $1 + "+" + $3;
-  driver.createMathBlock(SUM, $1, $3);
 }
 | exp "-" exp {
   $$ = $1 + "-" + $3;
-  driver.createMathBlock(SUB, $1, $3);
 }
 | exp2 { $$ = $1; }
 ;
@@ -200,19 +210,15 @@ exp:
 exp2:
 exp "*" exp {
   $$ = $1 + "*" + $3;
-  driver.createMathBlock(MUL, $1, $3);
 }
 | exp "/" exp {
   $$ = $1 + "/" + $3;
-  driver.createMathBlock(DIV, $1, $3);
 }
 | FNUM          {
   $$ = $1;
-  driver.createConstantBlock($1);
 }
 | INUM          {
   $$ = $1;
-  driver.createConstantBlock($1);
 }
 | VAR           {
   if (!driver.variableExists($1)) {
@@ -220,19 +226,25 @@ exp "*" exp {
     YYABORT;
   }
   $$ = "(" + driver.getVariable($1) + ")";
-  driver.createConstantBlock(driver.getVariable($1));
 }
 ;
 
-expWP: // Expressions plus external ports
-"(" expWP ")" {
+expWP:
+  expWP1 {
+    $$ = $1;
+    driver.createExpressionBlock();
+  }
+;
+
+expWP1: // Expressions plus external ports
+"(" expWP1 ")" {
   $$ = "(" + $2 + ")";
 }
-| expWP "+" expWP {
+| expWP1 "+" expWP1 {
   $$ = $1 + "+" + $3;
   driver.createMathBlock(SUM, $1, $3);
 }
-| expWP "-" expWP {
+| expWP1 "-" expWP1 {
   $$ = $1 + "-" + $3;
   driver.createMathBlock(SUB, $1, $3);
 }
@@ -240,15 +252,19 @@ expWP: // Expressions plus external ports
 ;
 
 expWP2: // Expressions plus external ports
-expWP "*" expWP {
+expWP1 "*" expWP1 {
   $$ = $1 + "*" + $3;
   driver.createMathBlock(MUL, $1, $3);
 }
-| expWP "/" expWP {
+| expWP1 "/" expWP1 {
   $$ = $1 + "/" + $3;
   driver.createMathBlock(DIV, $1, $3);
 }
-| INPUT         {
+| expWP3 { $$ = $1; }
+;
+
+expWP3:
+  INPUT         {
   $$ = "SIG";
   driver.createSignalBlock();
 }

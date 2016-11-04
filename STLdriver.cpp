@@ -60,7 +60,7 @@ void STLdriver::appendln(const std::string &s)
 void STLdriver::createMainTimeRange(TimeInterval t)
 {
   // TODO
-  appendln("createMainTimeRange ["
+  appendln("----) createMainTimeRange ["
            + (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
            + t.start + " , "
            + t.end
@@ -80,9 +80,9 @@ void STLdriver::createDiffBlock(std::string v)
   appendln("createDiffBlock [" + v + "]");
 }
 
-void STLdriver::createExpBlock()
+void STLdriver::createExpressionBlock()
 {
-  appendln("ExpressionBlock");
+  appendln("--------) ExpressionBlock");
 
   if (SIG_input) {
     // TODO add SIG port
@@ -97,29 +97,39 @@ void STLdriver::createExpBlock()
 
 void STLdriver::createConstantBlock(std::string v)
 {
-  appendln("createConstantBlock [" + v + "]");
+  appendln("------------) createConstantBlock [" + v + "]");
 }
 
 void STLdriver::createSignalBlock()
 {
   SIG_input = true;
-  appendln("createSignalBlock");
+  appendln("------------) createSignalBlock");
 }
 
 void STLdriver::createReferenceBlock()
 {
   REF_input = true;
-  appendln("createReferenceBlock");
+  appendln("------------) createReferenceBlock");
 }
 
 void STLdriver::createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2)
 {
-  appendln("createComparisonBlock [" + v1 + "][" + v2 + "]");
+  appendln("------) createComparisonBlock [" + v1 + "][" + v2 + "]");
+}
+
+void STLdriver::createComparisonExpression(BooleanOperator op, std::string v1, std::string v2)
+{
+  appendln("------) createComparisonExpression [" + v1 + "][" + v2 + "]");
 }
 
 void STLdriver::createMathBlock(MathOperator op, std::string v1, std::string v2)
 {
-  appendln("createMathBlock [" + v1 + "][" + v2 + "]");
+  appendln("----------) createMathBlock [" + v1 + "][" + v2 + "]");
+}
+
+void STLdriver::createAssertionBody()
+{
+  appendln("----) createAssertionBody");
 }
 
 bool STLdriver::variableExists(std::string v) {
@@ -135,4 +145,62 @@ std::string STLdriver::getVariable(std::string name) {
 void STLdriver::setStatus(DriverStatus s)
 {
   status = s;
+}
+
+void STLdriver::printConstantValues()
+{
+  /*
+  static unsigned int vertical_position = 20;
+  unsigned int vertical_offset = 20;
+  unsigned int horizontal_position = 20;
+  unsigned int horizontal_offset = 20;
+  */
+  std::cout << "--) printConstantValues()" << std::endl;
+
+  typedef std::map<std::string, std::string>::iterator it_type;
+  for(it_type it = variablesValues.begin(); it != variablesValues.end(); ++it) {
+    std::cout << "  " << it->first << " = " << it->second << std::endl;
+    /*
+    appendln(it->first + " = addConst(PATH, '" + it->first + "', '" + it->second + "');");
+    appendln("set_param(" + it->first + ", 'position', ["
+             + std::to_string(horizontal_position) + ", "
+             + std::to_string(vertical_position) + ", "
+             + std::to_string(horizontal_position + horizontal_offset) + ", "
+             + std::to_string(vertical_position + vertical_offset)
+             + "]);");
+    appendln("");
+    vertical_position = vertical_position + (vertical_offset * 2);
+    */
+  }
+
+  std::cout << std::endl << "-/--/--/--/--/--/--/--/--/-" << std::endl << std::endl;
+}
+
+void STLdriver::printAssertions()
+{
+  /*
+  static unsigned int vertical_position = 20;
+  unsigned int vertical_offset = 20;
+  unsigned int horizontal_position = 20;
+  unsigned int horizontal_offset = 20;
+  */
+  std::cout << "--) printConstantValues()" << std::endl;
+
+  typedef std::map<std::string, std::string>::iterator it_type;
+  for(it_type it = variablesValues.begin(); it != variablesValues.end(); ++it) {
+    std::cout << "  " << it->first << " = " << it->second << std::endl;
+    /*
+    appendln(it->first + " = addConst(PATH, '" + it->first + "', '" + it->second + "');");
+    appendln("set_param(" + it->first + ", 'position', ["
+             + std::to_string(horizontal_position) + ", "
+             + std::to_string(vertical_position) + ", "
+             + std::to_string(horizontal_position + horizontal_offset) + ", "
+             + std::to_string(vertical_position + vertical_offset)
+             + "]);");
+    appendln("");
+    vertical_position = vertical_position + (vertical_offset * 2);
+    */
+  }
+
+  std::cout << "--------------------------" << std::endl;
 }
