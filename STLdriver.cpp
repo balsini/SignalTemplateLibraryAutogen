@@ -1,6 +1,8 @@
 #include <STLdriver.h>
 #include <STLparser.hh>
 
+const std::string TEST_ROOT = "TEST";
+
 STLdriver::STLdriver(char * filename) :
   trace_scanning(false),
   trace_parsing(false),
@@ -209,37 +211,83 @@ void STLdriver::printAssertions()
   std::cout << "--------------------------" << std::endl;
 }
 
-std::string STLdriver::createExpression(MathOperation * e)
+std::string STLdriver::createExpression(MathOperation * e,
+                                        std::string parent,
+                                        unsigned int x,
+                                        unsigned int y)
 {
+  unsigned int vpos;
+  unsigned int hpos;
   static unsigned int exp_num = 0;
-  std::string expression_name = "Exp_" + std::to_string(exp_num++);
+  std::string exp_name = "Exp_" + std::to_string(exp_num++);
 
-  if (e->op == CONST) {
-    // Create block containing constant value
-  } else if (e->op == SIG || e->op == REF) {
-    // Create block containing input port
+  vpos = 40 * y + 20;
+  hpos = 40 * x + 20;
+
+  if (e->op == CONST || e->op == SIG || e->op == REF) {
+    // Create block containing input port or constant values
+
+    if (e->op == CONST) {
+      appendln(exp_name + " = addConst([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "', '" + e->value + "');");
+
+      //appendln(exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OUT']);");
+      //appendln("set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+    } else {
+      std::string portName;
+      if (e->op == SIG)
+        portName = "SIG";
+      else
+        portName = "REF";
+
+      appendln(exp_name + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + portName + "']);");
+    }
+
+    appendln("set_param(" + exp_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
   } else {// SUM, SUB, MUL, DIV
     // Create mathematical block
+
+    appendln(exp_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "');");
+    appendln("set_param(" + exp_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
+
+    appendln(exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OUT']);");
+    appendln("set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+
+    std::string matOp;
+    switch (e->op) {
+      case SUM:
+        matOp = "Add";
+        break;
+      case SUB:
+        matOp = "Subtract";
+        break;
+      case MUL:
+        matOp = "Product";
+        break;
+      case DIV:
+        matOp = "Divide";
+        break;
+      default: break;
+    }
+
+    appendln(exp_name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OP']);");
+    appendln("set_param(" + exp_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+
+    std::string A = createExpression(e->a, parent + "/" + exp_name, x + 1, y);
+    std::string B = createExpression(e->b, parent + "/" + exp_name, x + 1, y + 1);
+
+    appendln("OutPort1 = get_param(" + A + ",'PortHandles');");
+    appendln("OutPort2 = get_param(" + B + ",'PortHandles');");
+    appendln("OutPort3 = get_param(" + exp_name + "_OP,'PortHandles');");
+    appendln("InPort1 = get_param(" + exp_name + "_OUT,'PortHandles');");
+    appendln("InPort2 = get_param(" + exp_name + "_OP,'PortHandles');");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
   }
 
-  std::cout << expression_name << std::endl;
+  std::cout << exp_name << std::endl;
 
-  return expression_name;
-}
-
-std::string STLdriver::createComparisonBody()
-{
-  /*
-  // Insert comparison in (this) subsystem
-
-  appendln(ass_name + "_A = addEmptySubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'A');");
-  appendln(ass_name + "_B = addEmptySubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'B');");
-  appendln("set_param(" + ass_name + "_A,'position',[60, " + std::to_string(vpos) + ", 80, " + std::to_string(vpos + 20) + "])");
-  appendln("set_param(" + ass_name + "_B,'position',[60, " + std::to_string(vpos + 40) + ", 80, " + std::to_string(vpos + 20 + 40) + "])");
-
-  appendln("addCmpSubsystem([" + root_name + " '" + parent + "/" + ass_name + "'], 'OP', '" + ass_name_OP +  "', '" + ass_name + "_A', '" + ass_name + "_B');");
-  */
-  return "";
+  return exp_name;
 }
 
 std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
@@ -248,19 +296,57 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
   unsigned int hpos;
   static unsigned int ass_num = 0;
   std::string ass_name = "Ass_" + std::to_string(ass_num++);
-  std::string root_name = "TEST";
 
   vpos = 40 * y + 20;
   hpos = 40 * x + 20;
 
   if (l->op == COMPARISON) {
-    // Create block containing comparison expression
+    // Create block containing the TWO comparison expressions
 
-    appendln(ass_name + " = addEmptySubsystem([" + root_name + " '" + parent + "'], '" + ass_name + "');");
+    appendln(ass_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + ass_name + "');");
     appendln("set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "])");
 
-    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    std::string relOp;
+    switch (l->value->op) {
+      case GEQ:
+        relOp = ">=";
+        break;
+      case LEQ:
+        relOp = "<=";
+        break;
+      case GREATER:
+        relOp = ">";
+        break;
+      case SMALLER:
+        relOp = "<";
+        break;
+      case EQUAL:
+        relOp = "==";
+        break;
+      case NEQUAL:
+        relOp = "~=";
+        break;
+      default: break;
+    }
+
+    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
+    appendln("set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+    appendln("set_param(" + ass_name + "_OP,'Operator', '" + relOp + "');");
+
+    std::string A = createExpression(l->value->a, parent + "/" + ass_name, x + 1, y);
+    std::string B = createExpression(l->value->b, parent + "/" + ass_name, x + 1, y + 1);
+
+    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
     appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+
+    appendln("OutPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
+    appendln("OutPort2 = get_param(" + A + ",'PortHandles');");
+    appendln("OutPort3 = get_param(" + B + ",'PortHandles');");
+    appendln("InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
+    appendln("InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort2.Inport(2));");
 
   } else {// AND, OR
     //////////////////////////
@@ -270,9 +356,9 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     // Create empty subsystem (this)
     std::string par = "";
     if (parent == "")
-      par = root_name;
+      par = TEST_ROOT;
     else
-      par = "[" + root_name + " '" + parent + "']";
+      par = "[" + TEST_ROOT + " '" + parent + "']";
 
     appendln(ass_name + " = addEmptySubsystem(" + par + ", '" + ass_name + "');");
     appendln("set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
@@ -280,10 +366,10 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     std::string A = createAssertionBody(l->a, parent + "/" + ass_name, x + 1, y);
     std::string B = createAssertionBody(l->b, parent + "/" + ass_name, x + 1, y + 1);
 
-    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
     appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "]);");
 
-    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + root_name + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
+    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
     appendln("set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
 
     std::string logOp;
@@ -303,9 +389,9 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     appendln("OutPort3 = get_param(" + ass_name + "_OP,'PortHandles');");
     appendln("InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
     appendln("InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
-    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
-    appendln("add_line([" + root_name + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
   }
 
   std::cout << std::endl;

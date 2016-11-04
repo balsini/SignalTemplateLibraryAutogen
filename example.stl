@@ -28,4 +28,4 @@ min = stepSize - range;
 [] [0 , T] (isStep(SIG, stepSize) && SIG - REF < max);
 */
 
-[] (0 , T] (SIG + 4 < REF + 11 * (22 + 6) && (SIG > 0 || SIG < 100));
+[] (0 , T] (SIG + 1 < REF + 2 * (3 + 4) && (SIG > 5 || SIG < 6));

@@ -73,7 +73,10 @@ class STLdriver
     void createDiffBlock(std::string v);
     void createExpressionBlock();
     void createSignalBlock();
-    std::string createExpression(MathOperation * e);
+    std::string createExpression(MathOperation * e,
+                                 std::string parent = "",
+                                 unsigned int x = 0,
+                                 unsigned int y = 0);
     void createConstantBlock(std::string v);
     void createReferenceBlock();
     ComparisonOperation * createComparisonBlock(ComparisonOperator op,
@@ -85,8 +88,6 @@ class STLdriver
     MathOperation * createMathBlock(MathOperator op,
                                     MathOperation *a = nullptr,
                                     MathOperation *b = nullptr);
-    std::string createComparisonBody();
-
 };
 
 void foundConstantBlock(std::string v);
