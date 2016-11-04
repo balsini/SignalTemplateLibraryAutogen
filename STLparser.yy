@@ -85,17 +85,17 @@ DIFF        "diff"
 
 %type  <std::string>  exp
 %type  <std::string>  exp2
-%type  <std::string>  expWP
+%type  <MathOperation *>  expWP
 %type  <MathOperation *>  expWP1
 %type  <MathOperation *>  expWP2
 %type  <MathOperation *>  expWP3
-%type  <std::string>  cmp
-%type  <BooleanOperator>  boolOp
+%type  <ComparisonOperation *>  cmp
+%type  <LogicalOperation *>  boolExp
+%type  <LogicalOperator>  boolOp
 %type  <ComparisonOperator> cmpOp
 %type  <std::string>  assignment
 %type  <std::string>  assignments
 %type  <std::string>  assertion
-%type  <std::string>  assertion_body
 %type  <TimeInterval> time_range
 %type  <Border>       lparen
 %type  <Border>       rparen
@@ -153,36 +153,53 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 ;
 
 assertion:
-assertionOp time_range "(" assertion_body ")" {
-  $$ = "TODO assertion" + $4;
-  driver.createMainTimeRange($2);
+assertionOp time_range "(" boolExp ")" {
+  driver.createAssertionBody($4);
+  foundMainTimeRange($2);
 }
 ;
 
 assertionOp: ALWAYS | EVENTUALLY;
 
-assertion_body:
-cmp                 {
-  $$ = "TODO assertion_body1";
-  driver.createAssertionBody();
+boolExp:
+"(" boolExp ")" {
+  $$ = $2;
+  //driver.appendln("\"(\" boolExp \")\"");
 }
-| assertion_body cmp  {
-  $$ = "TODO assertion_body2";
-  //driver.createComparisonBlock(GEQ, $1, "ASS B 2");
+| boolExp boolOp boolExp  {
+  $$ = driver.createLogicalBlock($2, $1, $3);
+  //driver.appendln("boolExp boolOp boolExp");
+  //foundComparisonExpression($2, $1, $3);
 }
+| cmp                   {
+  $$ = driver.createLogicalBlock(COMPARISON);
+  $$->value = $1;
+  //driver.appendln("cmp");
+}
+//| NOT "(" cmp ")"             {
+  //$$ = driver.createComparisonExpressionBlock(NOT, $3);
+//}
+//| boolFunction        {
+  //$$ = nullptr;
+//}
 ;
 
 cmp:
-"(" cmp ")" {  }
-| expWP cmpOp expWP   { driver.createComparisonBlock($2, $1, $3); }
-| cmp boolOp cmp      { driver.createComparisonExpression($2, $1, $3); }
-| NOT cmp             { driver.createComparisonExpression(NOT, $2); }
-| boolFunction        { $$ = "function"; }
+"(" cmp ")" {
+  $$ = $2;
+}
+| expWP cmpOp expWP   {
+  $$ = driver.createComparisonBlock($2, $1, $3);
+}
 ;
 
 boolOp:
-AND { $$ = AND; }
-| OR  { $$ = OR; }
+AND {
+  $$ = AND;
+}
+| OR  {
+  $$ = OR;
+}
 ;
 
 cmpOp:
@@ -231,10 +248,7 @@ exp "*" exp {
 
 expWP:
 expWP1 {
-  //$$ = $1;
-  $$ = " expWP ";
-  driver.createExpressionBlock();
-  createExpression($1);
+  $$ = $1;
 }
 ;
 
@@ -275,12 +289,12 @@ INPUT         {
 | FNUM          {
   $$ = driver.createMathBlock(CONST);
   $$->value = $1;
-  driver.createConstantBlock($1);
+  foundConstantBlock($1);
 }
 | INUM          {
   $$ = driver.createMathBlock(CONST);
   $$->value = $1;
-  driver.createConstantBlock($1);
+  foundConstantBlock($1);
 }
 | VAR           {
   if (!driver.variableExists($1)) {
@@ -290,7 +304,7 @@ INPUT         {
   //$$ = "(" + driver.getVariable($1) + ")";
   $$ = driver.createMathBlock(CONST);
   $$->value = driver.getVariable($1);
-  driver.createConstantBlock(driver.getVariable($1));
+  foundConstantBlock(driver.getVariable($1));
 }
 ;
 

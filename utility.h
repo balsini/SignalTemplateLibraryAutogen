@@ -6,7 +6,7 @@
 enum Border { INTERVAL_OPEN, INTERVAL_CLOSED };
 enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
-enum BooleanOperator { AND, OR, NOT };
+enum LogicalOperator { AND, OR, NOT, COMPARISON };
 enum MathOperator { SUM, SUB, MUL, DIV, CONST, SIG, REF };
 
 struct MathOperation {
@@ -14,6 +14,19 @@ struct MathOperation {
     MathOperation *a;
     MathOperation *b;
     std::string value;
+};
+
+struct ComparisonOperation {
+    ComparisonOperator op;
+    MathOperation *a;
+    MathOperation *b;
+};
+
+struct LogicalOperation {
+    LogicalOperator op;
+    LogicalOperation *a;
+    LogicalOperation *b;
+    ComparisonOperation *value;
 };
 
 class TimeInterval

@@ -65,19 +65,28 @@ class STLdriver
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    void createMainTimeRange(TimeInterval t);
+    void createAssertionBody(LogicalOperation *l);
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
     void createExpressionBlock();
-    void createConstantBlock(std::string v);
     void createSignalBlock();
+    std::string createExpression(MathOperation * e);
+    void createConstantBlock(std::string v);
     void createReferenceBlock();
-    void createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2);
-    void createComparisonExpression(BooleanOperator op, std::string v1, std::string v2 = "");
-    MathOperation * createMathBlock(MathOperator op, MathOperation *a = nullptr, MathOperation *b = nullptr);
-    void createAssertionBody();
+    ComparisonOperation * createComparisonBlock(ComparisonOperator op,
+                                                MathOperation *a,
+                                                MathOperation *b = nullptr);
+    LogicalOperation * createLogicalBlock(LogicalOperator op,
+                                          LogicalOperation *a = nullptr,
+                                          LogicalOperation *b = nullptr);
+    MathOperation * createMathBlock(MathOperator op,
+                                    MathOperation *a = nullptr,
+                                    MathOperation *b = nullptr);
+
 };
 
-void createExpression(MathOperation * e);
+void foundConstantBlock(std::string v);
+void foundMainTimeRange(TimeInterval t);
+void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2 = "");
 
 #endif

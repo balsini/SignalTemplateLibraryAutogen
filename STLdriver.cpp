@@ -57,17 +57,6 @@ void STLdriver::appendln(const std::string &s)
   outputFile << std::endl;
 }
 
-void STLdriver::createMainTimeRange(TimeInterval t)
-{
-  // TODO
-  appendln("----) createMainTimeRange ["
-           + (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
-           + t.start + " , "
-           + t.end
-           + (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
-           + "]");
-}
-
 void STLdriver::createIsStepBlock(std::string v1, std::string v2)
 {
   // TODO
@@ -95,9 +84,9 @@ void STLdriver::createExpressionBlock()
   }
 }
 
-void STLdriver::createConstantBlock(std::string v)
+void createConstantBlock(std::string v)
 {
-  appendln("------------) createConstantBlock [" + v + "]");
+  //appendln("------------) createConstantBlock [" + v + "]");
 }
 
 void STLdriver::createSignalBlock()
@@ -112,14 +101,18 @@ void STLdriver::createReferenceBlock()
   appendln("------------) createReferenceBlock");
 }
 
-void STLdriver::createComparisonBlock(ComparisonOperator op, std::string v1, std::string v2)
+ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, MathOperation *a, MathOperation *b)
 {
-  appendln("------) createComparisonBlock [" + v1 + "][" + v2 + "]");
-}
+  appendln("------) createComparisonBlock");
+  //createExpression(a);
+  //createExpression(b);
 
-void STLdriver::createComparisonExpression(BooleanOperator op, std::string v1, std::string v2)
-{
-  appendln("------) createComparisonExpression [" + v1 + "][" + v2 + "]");
+  ComparisonOperation * c = new ComparisonOperation;
+  c->op = op;
+  c->a = a;
+  c->b = b;
+
+  return c;
 }
 
 MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, MathOperation *b)
@@ -134,9 +127,16 @@ MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, Ma
   return m;
 }
 
-void STLdriver::createAssertionBody()
+LogicalOperation * STLdriver::createLogicalBlock(LogicalOperator op, LogicalOperation *a, LogicalOperation *b)
 {
-  appendln("----) createAssertionBody");
+  appendln("----------) createMathBlock");
+
+  LogicalOperation * l = new LogicalOperation;
+  l->op = op;
+  l->a = a;
+  l->b = b;
+
+  return l;
 }
 
 bool STLdriver::variableExists(std::string v) {
@@ -212,18 +212,47 @@ void STLdriver::printAssertions()
   std::cout << "--------------------------" << std::endl;
 }
 
-void createExpression(MathOperation * e)
+std::string STLdriver::createExpression(MathOperation * e)
 {
-  switch (e->op) {
-    case SUM:
-      break;
-    case SUB:
-      break;
-    case MUL:
-      break;
-    case DIV:
-      break;
-    default:
-      break;
+  static unsigned int exp_num = 0;
+  std::string expression_name = "Exp_" + std::to_string(exp_num);
+
+  if (e->op == CONST) {
+    // Create block containing constant value
+  } else if (e->op == SIG || e->op == REF) {
+    // Create block containing input port
+  } else {// SUM, SUB, MUL, DIV
+    // Create mathematical block
   }
+
+  ++exp_num;
+
+  std::cout << expression_name << std::endl;
+
+  return expression_name;
+}
+
+void STLdriver::createAssertionBody(LogicalOperation *l)
+{
+  std::cout << "----) foundAssertionBody" << std::endl;
+}
+
+void foundConstantBlock(std::string v)
+{
+  std::cout << "------------) foundConstantBlock [" << v << "]" << std::endl;
+}
+
+void foundMainTimeRange(TimeInterval t)
+{
+  std::cout << "----) foundMainTimeRange ["
+           << (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
+           << t.start << " , "
+           << t.end
+           << (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
+           << "]" << std::endl;
+}
+
+void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2)
+{
+  std::cout << "------) foundComparisonExpression [" << v1 << "][" << v2 << "]" << std::endl;
 }
