@@ -65,7 +65,7 @@ class STLdriver
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
-    std::string createAssertionBody(LogicalOperation *l,
+    std::tuple<std::string, unsigned int> createAssertionBody(LogicalOperation *l,
                                     std::string parent = "",
                                     unsigned int x = 0,
                                     unsigned int y = 0);
@@ -73,7 +73,7 @@ class STLdriver
     void createDiffBlock(std::string v);
     void createExpressionBlock();
     void createSignalBlock();
-    std::string createExpression(MathOperation * e,
+    std::tuple<std::string, unsigned int> createExpression(MathOperation * e,
                                  std::string parent = "",
                                  unsigned int x = 0,
                                  unsigned int y = 0);

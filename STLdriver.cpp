@@ -211,14 +211,15 @@ void STLdriver::printAssertions()
   std::cout << "--------------------------" << std::endl;
 }
 
-std::string STLdriver::createExpression(MathOperation * e,
-                                        std::string parent,
-                                        unsigned int x,
-                                        unsigned int y)
+std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation * e,
+                                                                  std::string parent,
+                                                                  unsigned int x,
+                                                                  unsigned int y)
 {
   unsigned int vpos;
   unsigned int hpos;
   static unsigned int exp_num = 0;
+  unsigned int portRequired = 0;
   std::string exp_name = "Exp_" + std::to_string(exp_num++);
 
   vpos = 40 * y + 20;
@@ -230,19 +231,31 @@ std::string STLdriver::createExpression(MathOperation * e,
     if (e->op == CONST) {
       appendln(exp_name + " = addConst([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "', '" + e->value + "');");
 
-      //appendln(exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OUT']);");
       //appendln("set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
     } else {
       std::string portName;
-      if (e->op == SIG)
-        portName = "SIG";
-      else
-        portName = "REF";
+      switch (e->op) {
+        case SIG:
+          portName = "SIG";
+          portRequired |= SIG_PORT;
+          break;
+        case REF:
+          portName = "REF";
+          portRequired |= REF_PORT;
+          break;
+        default: break;
+      }
 
-      appendln(exp_name + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + portName + "']);");
+      appendln(exp_name + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + portName + "']); % createExpression");
+
+      if (e->op == SIG)
+        appendln("set_param(" + exp_name + ", 'port', '1');");
+      else
+        appendln("set_param(" + exp_name + ", 'port', '2');");
+
     }
 
-    appendln("set_param(" + exp_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
+    appendln("set_param(" + exp_name + ",'position', [60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
   } else {// SUM, SUB, MUL, DIV
     // Create mathematical block
 
@@ -272,28 +285,64 @@ std::string STLdriver::createExpression(MathOperation * e,
     appendln(exp_name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OP']);");
     appendln("set_param(" + exp_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
 
-    std::string A = createExpression(e->a, parent + "/" + exp_name, x + 1, y);
-    std::string B = createExpression(e->b, parent + "/" + exp_name, x + 1, y + 1);
+    std::tuple<std::string, unsigned int> A = createExpression(e->a, parent + "/" + exp_name, x + 1, y);
+    std::tuple<std::string, unsigned int> B = createExpression(e->b, parent + "/" + exp_name, x + 1, y + 1);
 
-    appendln("OutPort1 = get_param(" + A + ",'PortHandles');");
-    appendln("OutPort2 = get_param(" + B + ",'PortHandles');");
+    appendln("OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    appendln("OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
     appendln("OutPort3 = get_param(" + exp_name + "_OP,'PortHandles');");
     appendln("InPort1 = get_param(" + exp_name + "_OUT,'PortHandles');");
     appendln("InPort2 = get_param(" + exp_name + "_OP,'PortHandles');");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
-    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort3.Outport(1), InPort1.Inport(1)); % createExpression");
+
+    portRequired |= std::get<1>(A);
+    portRequired |= std::get<1>(B);
+
+    if (portRequired & SIG_PORT) {
+      appendln(exp_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "SIG']);");
+      appendln("set_param(" + exp_name + "_SIG,'position',[20, 20, 40, 40]);");
+      appendln("set_param(" + exp_name + "_SIG, 'port', '1');");
+    }
+    if (portRequired & REF_PORT) {
+      appendln(exp_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "REF']);");
+      appendln("set_param(" + exp_name + "_REF,'position',[20, 60, 40, 80]);");
+      appendln("set_param(" + exp_name + "_REF, 'port', '2');");
+    }
+
+    if (std::get<1>(A) & SIG_PORT) {
+      appendln("OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
+      appendln("InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1));");
+    }
+    if (std::get<1>(A) & REF_PORT) {
+      appendln("OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
+      appendln("InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2));");
+    }
+    if (std::get<1>(B) & SIG_PORT) {
+      appendln("OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
+      appendln("InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1));");
+    }
+    if (std::get<1>(B) & REF_PORT) {
+      appendln("OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
+      appendln("InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2));");
+    }
   }
 
   std::cout << exp_name << std::endl;
 
-  return exp_name;
+  return std::make_tuple(exp_name, portRequired);
 }
 
-std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
+std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
 {
   unsigned int vpos;
   unsigned int hpos;
+  unsigned int portRequired = 0;
   static unsigned int ass_num = 0;
   std::string ass_name = "Ass_" + std::to_string(ass_num++);
 
@@ -333,20 +382,23 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     appendln("set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
     appendln("set_param(" + ass_name + "_OP,'Operator', '" + relOp + "');");
 
-    std::string A = createExpression(l->value->a, parent + "/" + ass_name, x + 1, y);
-    std::string B = createExpression(l->value->b, parent + "/" + ass_name, x + 1, y + 1);
+    std::tuple<std::string, unsigned int> A = createExpression(l->value->a, parent + "/" + ass_name, x + 1, y);
+    std::tuple<std::string, unsigned int> B = createExpression(l->value->b, parent + "/" + ass_name, x + 1, y + 1);
 
     appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
     appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
 
     appendln("OutPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln("OutPort2 = get_param(" + A + ",'PortHandles');");
-    appendln("OutPort3 = get_param(" + B + ",'PortHandles');");
+    appendln("OutPort2 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    appendln("OutPort3 = get_param(" + std::get<0>(B) + ",'PortHandles');");
     appendln("InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
     appendln("InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1));");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(1));");
-    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort2.Inport(2));");
+    appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort2.Inport(2)); % createAssertionBody");
+
+    portRequired |= std::get<1>(A);
+    portRequired |= std::get<1>(B);
 
   } else {// AND, OR
     //////////////////////////
@@ -363,13 +415,13 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     appendln(ass_name + " = addEmptySubsystem(" + par + ", '" + ass_name + "');");
     appendln("set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
 
-    std::string A = createAssertionBody(l->a, parent + "/" + ass_name, x + 1, y);
-    std::string B = createAssertionBody(l->b, parent + "/" + ass_name, x + 1, y + 1);
+    std::tuple<std::string, unsigned int> A = createAssertionBody(l->a, parent + "/" + ass_name, x + 1, y);
+    std::tuple<std::string, unsigned int> B = createAssertionBody(l->b, parent + "/" + ass_name, x + 1, y + 1);
 
     appendln(ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
     appendln("set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "]);");
 
-    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
+    appendln(ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OP']);");
     appendln("set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
 
     std::string logOp;
@@ -384,19 +436,57 @@ std::string STLdriver::createAssertionBody(LogicalOperation *l, std::string pare
     }
     appendln("set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
 
-    appendln("OutPort1 = get_param(" + A + ",'PortHandles');");
-    appendln("OutPort2 = get_param(" + B + ",'PortHandles');");
+    appendln("OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    appendln("OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
     appendln("OutPort3 = get_param(" + ass_name + "_OP,'PortHandles');");
     appendln("InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
     appendln("InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1));");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2));");
     appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1));");
+
+    portRequired |= std::get<1>(A);
+    portRequired |= std::get<1>(B);
+
+    if (portRequired & SIG_PORT) {
+      appendln(ass_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/SIG']);");
+      appendln("set_param(" + ass_name + "_SIG,'position',[20, 20, 40, 40]);");
+      appendln("set_param(" + ass_name + "_SIG, 'port', '1');");
+    }
+    if (portRequired & REF_PORT) {
+      appendln(ass_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/REF']);");
+      appendln("set_param(" + ass_name + "_REF,'position',[20, 60, 40, 80]);");
+      appendln("set_param(" + ass_name + "_REF, 'port', '2');");
+    }
+    if (std::get<1>(A) & SIG_PORT) {
+      appendln("OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
+      appendln("InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1));");
+    }
+    if (std::get<1>(A) & REF_PORT) {
+      appendln("OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
+      appendln("InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2));");
+    }
+    if (std::get<1>(B) & SIG_PORT) {
+      appendln("OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
+      appendln("InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1));");
+    }
+    if (std::get<1>(B) & REF_PORT) {
+      appendln("OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
+      appendln("InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+      appendln("add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2));");
+    }
+  }
+
+  if (parent == "") {
+    // TODO
   }
 
   std::cout << std::endl;
 
-  return ass_name;
+  return std::make_tuple(ass_name, portRequired);
 }
 
 void foundConstantBlock(std::string v)

@@ -8,6 +8,9 @@ enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
 enum LogicalOperator { AND, OR, NOT, COMPARISON };
 enum MathOperator { SUM, SUB, MUL, DIV, CONST, SIG, REF };
+const unsigned int NO_PORT = 0;
+const unsigned int SIG_PORT = 1;
+const unsigned int REF_PORT = 2;
 
 struct MathOperation {
     MathOperator op;
