@@ -38,7 +38,6 @@ class STLdriver
     void setStatus(DriverStatus s);
 
     void printConstantValues();
-    void printAssertions();
 
     // Run the parser on file F.
     // Return 0 on success.
@@ -72,7 +71,6 @@ class STLdriver
     void connectAssertions(std::list<std::tuple<std::string, unsigned int> > l);
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
-    void createExpressionBlock();
     void createSignalBlock();
     std::tuple<std::string, unsigned int> createExpression(MathOperation * e,
                                  std::string parent = "",
@@ -90,9 +88,5 @@ class STLdriver
                                     MathOperation *a = nullptr,
                                     MathOperation *b = nullptr);
 };
-
-void foundConstantBlock(std::string v);
-void foundMainTimeRange(TimeInterval t);
-void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2 = "");
 
 #endif

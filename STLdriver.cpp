@@ -49,21 +49,21 @@ void STLdriver::error(const std::string& m)
 
 void STLdriver::append(const std::string &s)
 {
-  std::cout << s;
+  //std::cout << s;
   outputFile << s;
 }
 
 void STLdriver::appendln(const std::string fileName, int lineNumber, const std::string &s)
 {
   append("% " + fileName + "::" + std::to_string(lineNumber));
-  std::cout << std::endl;
+  //std::cout << std::endl;
   outputFile << std::endl;
 
   append(s);
-  std::cout << std::endl;
+  //std::cout << std::endl;
   outputFile << std::endl;
 
-  std::cout << std::endl;
+  //std::cout << std::endl;
   outputFile << std::endl;
 }
 
@@ -77,41 +77,26 @@ void STLdriver::createDiffBlock(std::string v)
   std::cout << "createDiffBlock [" + v + "]" << std::endl;
 }
 
-void STLdriver::createExpressionBlock()
-{
-  std::cout << "--------) ExpressionBlock" << std::endl;
-
-  if (SIG_input) {
-    // TODO add SIG port
-    SIG_input = false;
-  }
-
-  if (REF_input) {
-    // TODO add REF port
-    REF_input = false;
-  }
-}
-
 void createConstantBlock(std::string v)
 {
-  std::cout << "------------) createConstantBlock" << std::endl;
+  std::cout << "--|--|--|--|--|--) createConstantBlock" << std::endl;
 }
 
 void STLdriver::createSignalBlock()
 {
   SIG_input = true;
-  std::cout << "------------) createSignalBlock" << std::endl;
+  std::cout << "--|--|--|--|--|--) createSignalBlock" << std::endl;
 }
 
 void STLdriver::createReferenceBlock()
 {
   REF_input = true;
-  std::cout << "------------) createReferenceBlock" << std::endl;
+  std::cout << "--|--|--|--|--|--) createReferenceBlock" << std::endl;
 }
 
 ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, MathOperation *a, MathOperation *b)
 {
-  std::cout << "------) createComparisonBlock" << std::endl;
+  std::cout << "--|--|--) createComparisonBlock" << std::endl;
   //createExpression(a);
   //createExpression(b);
 
@@ -124,7 +109,7 @@ ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, Ma
 }
 MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, MathOperation *b)
 {
-  std::cout << "----------) createMathBlock" << std::endl;
+  std::cout << "--|--|--|--|--) createMathBlock" << std::endl;
 
   MathOperation * m = new MathOperation;
   m->op = op;
@@ -136,7 +121,7 @@ MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, Ma
 
 LogicalOperation * STLdriver::createLogicalBlock(LogicalOperator op, LogicalOperation *a, LogicalOperation *b)
 {
-  std::cout << "----------) createMathBlock" << std::endl;
+  std::cout << "--|--|--|--|--) createMathBlock" << std::endl;
 
   LogicalOperation * l = new LogicalOperation;
   l->op = op;
@@ -188,35 +173,6 @@ void STLdriver::printConstantValues()
   }
 
   std::cout << std::endl << "-/--/--/--/--/--/--/--/--/-" << std::endl << std::endl;
-}
-
-void STLdriver::printAssertions()
-{
-  /*
-  static unsigned int vertical_position = 20;
-  unsigned int vertical_offset = 20;
-  unsigned int horizontal_position = 20;
-  unsigned int horizontal_offset = 20;
-  */
-  std::cout << "--) printConstantValues()" << std::endl;
-
-  typedef std::map<std::string, std::string>::iterator it_type;
-  for(it_type it = variablesValues.begin(); it != variablesValues.end(); ++it) {
-    std::cout << "  " << it->first << " = " << it->second << std::endl;
-    /*
-    appendln(it->first + " = addConst(PATH, '" + it->first + "', '" + it->second + "');");
-    appendln("set_param(" + it->first + ", 'position', ["
-             + std::to_string(horizontal_position) + ", "
-             + std::to_string(vertical_position) + ", "
-             + std::to_string(horizontal_position + horizontal_offset) + ", "
-             + std::to_string(vertical_position + vertical_offset)
-             + "]);");
-    appendln("");
-    vertical_position = vertical_position + (vertical_offset * 2);
-    */
-  }
-
-  std::cout << "--------------------------" << std::endl;
 }
 
 std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation * e,
@@ -340,8 +296,6 @@ std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation 
       appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
   }
-
-  std::cout << exp_name << std::endl;
 
   return std::make_tuple(exp_name, portRequired);
 }
@@ -525,27 +479,5 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
     }
   }
 
-  std::cout << std::endl;
-
   return std::make_tuple(ass_name, portRequired);
-}
-
-void foundConstantBlock(std::string v)
-{
-  std::cout << "------------) foundConstantBlock [" << v << "]" << std::endl;
-}
-
-void foundMainTimeRange(TimeInterval t)
-{
-  std::cout << "----) foundMainTimeRange ["
-            << (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
-            << t.start << " , "
-            << t.end
-            << (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
-            << "]" << std::endl;
-}
-
-void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2)
-{
-  std::cout << "------) foundComparisonExpression [" << v1 << "][" << v2 << "]" << std::endl;
 }

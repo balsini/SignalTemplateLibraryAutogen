@@ -52,5 +52,9 @@ class TimeInterval
 
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);
 
+void foundConstantBlock(std::string v);
+void foundMainTimeRange(TimeInterval t);
+void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2 = "");
+
 #endif // UTILITY_H
 

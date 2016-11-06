@@ -112,16 +112,16 @@ DIFF        "diff"
 
 parser:
 header  {
-  std::cout << "-) Header DONE" << std::endl;
+  std::cout << "## Header DONE ##" << std::endl;
   driver.printConstantValues();
   driver.setStatus(BODY);
 }
 body    {
-  std::cout << "-) Body DONE" << std::endl;
+  std::cout << "## Body DONE ##" << std::endl;
   driver.setStatus(FOOTER);
 }
 footer  {
-  std::cout << "-) Footer DONE" << std::endl;
+  std::cout << "## Footer DONE ##" << std::endl;
 }
 ;
 
