@@ -155,7 +155,9 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 
 assertion:
 assertionOp time_range "(" boolExp ")" {
-  driver.createAssertionBody($4);
+  std::list<std::tuple<std::string, unsigned int>> l;
+  l.push_back(driver.createAssertionBody($4));
+  driver.connectAssertions(l);
   foundMainTimeRange($2);
 }
 ;

@@ -69,6 +69,7 @@ class STLdriver
                                     std::string parent = "",
                                     unsigned int x = 0,
                                     unsigned int y = 0);
+    void connectAssertions(std::list<std::tuple<std::string, unsigned int> > l);
     void createIsStepBlock(std::string v1, std::string v2);
     void createDiffBlock(std::string v);
     void createExpressionBlock();
