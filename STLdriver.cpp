@@ -368,14 +368,6 @@ void STLdriver::connectAssertions(std::list<std::tuple<std::string, unsigned int
       testBlockAppendLn(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
   }
-
-/*
-
-
-  OutPort2 = get_param(REF,'PortHandles');
-  add_line(ROOT, OutPort.Outport(1), InPort.Inport(1));
-  add_line(ROOT, OutPort2.Outport(1), InPort.Inport(2));
-  */
 }
 
 std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
