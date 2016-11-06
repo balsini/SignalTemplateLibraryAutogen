@@ -47,7 +47,7 @@ class STLdriver
     // Appends to the file and stdout
     // the given string
     void append(const std::string &s);
-    void appendln(const std::string &s);
+    void appendln(const std::string fileName, int lineNumber, const std::string &s);
 
     // Handling the scanner.
     void scan_begin();
