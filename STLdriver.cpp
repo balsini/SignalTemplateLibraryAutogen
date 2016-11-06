@@ -4,25 +4,26 @@
 const std::string TEST_ROOT = "TEST";
 const std::string ADD_LINE_AUTOROUTING = ", 'autorouting','on'";
 
-STLdriver::STLdriver(char * filename) :
+STLdriver::STLdriver(const std::string &path) :
   trace_scanning(false),
   trace_parsing(false),
   REF_input(false),
   SIG_input(false),
   status(HEADER)
 {
-  outputFile.open(filename, std::ofstream::out);
-  if (outputFile.is_open()) {
-    std::cout << "Output file opened" << std::endl;
-  } else {
-    std::cout << "Error opening file" << std::endl;
-  }
+  testBlockAppendFile.open(path + "AUTOGEN_testBlock.m", std::ofstream::out);
+  if (!testBlockAppendFile.is_open())
+    throw "Error opening AUTOGEN_testBlock.m";
+
+  testBlockRoutingAppendFile.open(path + "AUTOGEN_testBlockRouting.m", std::ofstream::out);
+  if (!testBlockRoutingAppendFile.is_open())
+    throw "Error opening AUTOGEN_testBlockRouting.m";
 }
 
 STLdriver::~STLdriver()
 {
-  outputFile.close();
-  std::cout << "Output file closed" << std::endl;
+  testBlockAppendFile.close();
+  testBlockRoutingAppendFile.close();
 }
 
 int STLdriver::parse(const std::string &f)
@@ -47,24 +48,38 @@ void STLdriver::error(const std::string& m)
   std::cerr << m << std::endl;
 }
 
-void STLdriver::append(const std::string &s)
+void STLdriver::fileAppend(const std::string &s, std::ofstream &f)
 {
   //std::cout << s;
-  outputFile << s;
+  f << s;
 }
 
-void STLdriver::appendln(const std::string fileName, int lineNumber, const std::string &s)
+void STLdriver::testBlockAppendLn(const std::string fileName, int lineNumber, const std::string &s)
 {
-  append("% " + fileName + "::" + std::to_string(lineNumber));
+  fileAppend("% " + fileName + "::" + std::to_string(lineNumber), testBlockAppendFile);
   //std::cout << std::endl;
-  outputFile << std::endl;
+  testBlockAppendFile << std::endl;
 
-  append(s);
+  fileAppend(s, testBlockAppendFile);
   //std::cout << std::endl;
-  outputFile << std::endl;
+  testBlockAppendFile << std::endl;
 
   //std::cout << std::endl;
-  outputFile << std::endl;
+  testBlockAppendFile << std::endl;
+}
+
+void STLdriver::testBlockRoutingAppendLn(const std::string fileName, int lineNumber, const std::string &s)
+{
+  fileAppend("% " + fileName + "::" + std::to_string(lineNumber), testBlockRoutingAppendFile);
+  //std::cout << std::endl;
+  testBlockRoutingAppendFile << std::endl;
+
+  fileAppend(s, testBlockRoutingAppendFile);
+  //std::cout << std::endl;
+  testBlockRoutingAppendFile << std::endl;
+
+  //std::cout << std::endl;
+  testBlockRoutingAppendFile << std::endl;
 }
 
 void STLdriver::createIsStepBlock(std::string v1, std::string v2)
@@ -160,14 +175,14 @@ void STLdriver::printConstantValues()
   for(it_type it = variablesValues.begin(); it != variablesValues.end(); ++it) {
     std::cout << "  " << it->first << " = " << it->second << std::endl;
     /*
-    appendln(it->first + " = addConst(PATH, '" + it->first + "', '" + it->second + "');");
-    appendln("set_param(" + it->first + ", 'position', ["
+    testBlockAppendLn(it->first + " = addConst(PATH, '" + it->first + "', '" + it->second + "');");
+    testBlockAppendLn("set_param(" + it->first + ", 'position', ["
              + std::to_string(horizontal_position) + ", "
              + std::to_string(vertical_position) + ", "
              + std::to_string(horizontal_position + horizontal_offset) + ", "
              + std::to_string(vertical_position + vertical_offset)
              + "]);");
-    appendln("");
+    testBlockAppendLn("");
     vertical_position = vertical_position + (vertical_offset * 2);
     */
   }
@@ -193,9 +208,9 @@ std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation 
     // Create block containing input port or constant values
 
     if (e->op == CONST) {
-      appendln(__FILE__, __LINE__, exp_name + " = addConst([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "', '" + e->value + "');");
+      testBlockAppendLn(__FILE__, __LINE__, exp_name + " = addConst([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "', '" + e->value + "');");
 
-      //appendln("set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+      //testBlockAppendLn("set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
     } else {
       std::string portName;
       switch (e->op) {
@@ -210,24 +225,24 @@ std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation 
         default: break;
       }
 
-      appendln(__FILE__, __LINE__, exp_name + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + portName + "']);");
+      testBlockAppendLn(__FILE__, __LINE__, exp_name + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + portName + "']);");
 
       if (e->op == SIG)
-        appendln(__FILE__, __LINE__, "set_param(" + exp_name + ", 'port', '1');");
+        testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + ", 'port', '1');");
       else
-        appendln(__FILE__, __LINE__, "set_param(" + exp_name + ", 'port', '2');");
+        testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + ", 'port', '2');");
 
     }
 
-    appendln(__FILE__, __LINE__, "set_param(" + exp_name + ",'position', [60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + ",'position', [60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
   } else {// SUM, SUB, MUL, DIV
     // Create mathematical block
 
-    appendln(__FILE__, __LINE__, exp_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "');");
-    appendln(__FILE__, __LINE__, "set_param(" + exp_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, exp_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + exp_name + "');");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
 
-    appendln(__FILE__, __LINE__, exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OUT']);");
-    appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+    testBlockAppendLn(__FILE__, __LINE__, exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OUT']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
 
     std::string matOp;
     switch (e->op) {
@@ -246,54 +261,54 @@ std::tuple<std::string, unsigned int> STLdriver::createExpression(MathOperation 
       default: break;
     }
 
-    appendln(__FILE__, __LINE__, exp_name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OP']);");
-    appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, exp_name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + TEST_ROOT + " '" + parent + "/" + exp_name + "/" + exp_name + "_OP']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
 
     std::tuple<std::string, unsigned int> A = createExpression(e->a, parent + "/" + exp_name, x + 1, y);
     std::tuple<std::string, unsigned int> B = createExpression(e->b, parent + "/" + exp_name, x + 1, y + 1);
 
-    appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort3 = get_param(" + exp_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + "_OUT,'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort2 = get_param(" + exp_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort1.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort2.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort3.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort3 = get_param(" + exp_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + "_OUT,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort2 = get_param(" + exp_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort1.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort2.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort3.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
 
     portRequired |= std::get<1>(A);
     portRequired |= std::get<1>(B);
 
     if (portRequired & SIG_PORT) {
-      appendln(__FILE__, __LINE__, exp_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "SIG']);");
-      appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_SIG,'position',[20, 20, 40, 40]);");
-      appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_SIG, 'port', '1');");
+      testBlockAppendLn(__FILE__, __LINE__, exp_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "SIG']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_SIG,'position',[20, 20, 40, 40]);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_SIG, 'port', '1');");
     }
     if (portRequired & REF_PORT) {
-      appendln(__FILE__, __LINE__, exp_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "REF']);");
-      appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_REF,'position',[20, 60, 40, 80]);");
-      appendln(__FILE__, __LINE__, "set_param(" + exp_name + "_REF, 'port', '2');");
+      testBlockAppendLn(__FILE__, __LINE__, exp_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + "REF']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_REF,'position',[20, 60, 40, 80]);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_REF, 'port', '2');");
     }
 
     if (std::get<1>(A) & SIG_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(A) & REF_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(B) & SIG_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_SIG,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(B) & REF_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + exp_name + "_REF,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
   }
 
@@ -306,35 +321,61 @@ void STLdriver::connectAssertions(std::list<std::tuple<std::string, unsigned int
   unsigned int portRequired = 0;
   std::string SIG_PORT_NAME = "TEST_ROOT_SIG";
   std::string REF_PORT_NAME = "TEST_ROOT_REF";
+  std::string OUT_PORT_NAME = "TEST_ROOT_VALID";
 
-  for (std::tuple<std::string, unsigned int> A : l)
+  testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + OUT_PORT_NAME + ",'PortHandles');");
+  for (std::tuple<std::string, unsigned int> A : l) {
     portRequired |= std::get<1>(A);
 
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+  }
+
   if (portRequired & SIG_PORT) {
-    appendln(__FILE__, __LINE__, SIG_PORT_NAME + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '/SIG']);");
-    appendln(__FILE__, __LINE__, "set_param(" + SIG_PORT_NAME + ",'position',[20, 20, 40, 40]);");
-    appendln(__FILE__, __LINE__, "set_param(" + SIG_PORT_NAME + ", 'port', '1');");
-    appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + SIG_PORT_NAME + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, SIG_PORT_NAME + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '/SIG']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + SIG_PORT_NAME + ",'position',[20, 20, 40, 40]);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + SIG_PORT_NAME + ", 'port', '1');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + SIG_PORT_NAME + ",'PortHandles');");
+
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "SIG = add_block('simulink/Sources/In1', [ROOT '/SIG']);");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "set_param(SIG,'position',[column_margin(1), row_margin(2), column_margin(1) + 20, row_margin(2) + 20]);");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(SIG,'PortHandles');");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "InPort1 = get_param(TEST,'PortHandles');");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "add_line(ROOT, OutPort1.Outport(1), InPort1.Inport(1));");
   }
   if (portRequired & REF_PORT) {
-    appendln(__FILE__, __LINE__, REF_PORT_NAME + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '/REF']);");
-    appendln(__FILE__, __LINE__, "set_param(" + REF_PORT_NAME + ",'position',[20, 60, 40, 80]);");
-    appendln(__FILE__, __LINE__, "set_param(" + REF_PORT_NAME + ", 'port', '2');");
-    appendln(__FILE__, __LINE__, "OutPort2 = get_param(" + REF_PORT_NAME + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, REF_PORT_NAME + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '/REF']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + REF_PORT_NAME + ",'position',[20, 60, 40, 80]);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + REF_PORT_NAME + ", 'port', '2');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort2 = get_param(" + REF_PORT_NAME + ",'PortHandles');");
+
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "REF = add_block('simulink/Sources/In1', [ROOT '/REF']);");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "set_param(REF,'position',[column_margin(1), row_margin(3), column_margin(1) + 20, row_margin(3) + 20]);");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(REF,'PortHandles');");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "InPort1 = get_param(TEST,'PortHandles');");
+    testBlockRoutingAppendLn(__FILE__, __LINE__, "add_line(ROOT, OutPort1.Outport(1), InPort1.Inport(2));");
   }
 
   for (std::tuple<std::string, unsigned int> A : l) {
     std::string ass_name = std::get<0>(A);
 
     if (std::get<1>(A) & SIG_PORT) {
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(A) & REF_PORT) {
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
   }
+
+/*
+
+
+  OutPort2 = get_param(REF,'PortHandles');
+  add_line(ROOT, OutPort.Outport(1), InPort.Inport(1));
+  add_line(ROOT, OutPort2.Outport(1), InPort.Inport(2));
+  */
 }
 
 std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int x, unsigned int y)
@@ -351,8 +392,8 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
   if (l->op == COMPARISON) {
     // Create block containing the TWO comparison expressions
 
-    appendln(__FILE__, __LINE__, ass_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + ass_name + "');");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "])");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + ass_name + "');");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "])");
 
     std::string relOp;
     switch (l->value->op) {
@@ -377,24 +418,24 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
       default: break;
     }
 
-    appendln(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + relOp + "');");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + relOp + "');");
 
     std::tuple<std::string, unsigned int> A = createExpression(l->value->a, parent + "/" + ass_name, x + 1, y);
     std::tuple<std::string, unsigned int> B = createExpression(l->value->b, parent + "/" + ass_name, x + 1, y + 1);
 
-    appendln(__FILE__, __LINE__, ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "])");
 
-    appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort3 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort3 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
 
     portRequired |= std::get<1>(A);
     portRequired |= std::get<1>(B);
@@ -411,17 +452,17 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
     else
       par = "[" + TEST_ROOT + " '" + parent + "']";
 
-    appendln(__FILE__, __LINE__, ass_name + " = addEmptySubsystem(" + par + ", '" + ass_name + "');");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + " = addEmptySubsystem(" + par + ", '" + ass_name + "');");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + ",'position',[60, " + std::to_string(vpos) + ", 100, " + std::to_string(vpos + 20) + "]);");
 
     std::tuple<std::string, unsigned int> A = createAssertionBody(l->a, parent + "/" + ass_name, x + 1, y);
     std::tuple<std::string, unsigned int> B = createAssertionBody(l->b, parent + "/" + ass_name, x + 1, y + 1);
 
-    appendln(__FILE__, __LINE__, ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OUT']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OUT,'position',[180, " + std::to_string(vpos) + ", 200, " + std::to_string(vpos + 20) + "]);");
 
-    appendln(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OP']);");
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
+    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OP']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[140, " + std::to_string(vpos) + ", 160, " + std::to_string(vpos + 20) + "]);");
 
     std::string logOp;
     switch (l->op) {
@@ -433,49 +474,49 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
         break;
       default: break;
     }
-    appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
 
-    appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-    appendln(__FILE__, __LINE__, "OutPort3 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
-    appendln(__FILE__, __LINE__, "InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
-    appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort3 = get_param(" + ass_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "InPort2 = get_param(" + ass_name + "_OP,'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort2.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort3.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
 
     portRequired |= std::get<1>(A);
     portRequired |= std::get<1>(B);
 
     if (portRequired & SIG_PORT) {
-      appendln(__FILE__, __LINE__, ass_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/SIG']);");
-      appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_SIG,'position',[20, 20, 40, 40]);");
-      appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_SIG, 'port', '1');");
+      testBlockAppendLn(__FILE__, __LINE__, ass_name + "_SIG = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/SIG']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_SIG,'position',[20, 20, 40, 40]);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_SIG, 'port', '1');");
     }
     if (portRequired & REF_PORT) {
-      appendln(__FILE__, __LINE__, ass_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/REF']);");
-      appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_REF,'position',[20, 60, 40, 80]);");
-      appendln(__FILE__, __LINE__, "set_param(" + ass_name + "_REF, 'port', '2');");
+      testBlockAppendLn(__FILE__, __LINE__, ass_name + "_REF = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/REF']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_REF,'position',[20, 60, 40, 80]);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_REF, 'port', '2');");
     }
     if (std::get<1>(A) & SIG_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(A) & REF_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(B) & SIG_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_SIG,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
     }
     if (std::get<1>(B) & REF_PORT) {
-      appendln(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
-      appendln(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-      appendln(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_REF,'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
+      testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
     }
   }
 
