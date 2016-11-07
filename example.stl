@@ -32,14 +32,10 @@ min = stepSize - range;
 
 [] (0 , T] (SIGA < 11 && SIGA >= 0);
 
-// Proposition fails: when?
-// -- The error is generated when the proposition results false
 // How to interpret the relative (internal) time ranges?
+// -- It is up to the AND operator
 
 // TODO
 // Cleanup volatile memory
-// Internal parser that checks the model input signals and considers them as ports
 // <>
 // Until
-// Create matlab script that exports the signal names to file SF
-// -- SF will be interpreted by the bison scanner and will use those signals as portsl

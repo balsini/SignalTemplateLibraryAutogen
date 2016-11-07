@@ -306,10 +306,8 @@ void STLdriver::connectAssertions(std::list<blockPortMapping> l)
 {
   portMapping requiredPorts;
 
-  unsigned int position_X_IN[2] = {20, 40}; // TODO
-  unsigned int position_X_EXP[2] = {80, 150}; // TODO
-  unsigned int position_X_OP[2] = {190, 210}; // TODO
-  unsigned int position_X_OUT[2] = {230, 250}; // TODO
+  unsigned int position_X_IN[2] = {20, 40};
+  unsigned int position_X_OUT[2] = {230, 250};
 
   testBlockAppendLn(__FILE__, __LINE__, "TEST_ROOT_VALID = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '/VALID']);");
   testBlockAppendLn(__FILE__, __LINE__, "set_param(TEST_ROOT_VALID,'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
