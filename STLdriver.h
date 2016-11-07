@@ -16,6 +16,9 @@
 // ... and declare it for the parser's sake.
 YY_DECL;
 
+typedef std::map<std::string, unsigned int> portMapping;
+typedef std::tuple<std::string, portMapping> blockPortMapping;
+
 class STLdriver
 {
   std::ofstream testBlockAppendFile;
@@ -37,6 +40,7 @@ public:
   virtual ~STLdriver();
 
   bool variableExists(std::string v);
+  bool portExists(std::string v);
   void setVariable(std::string name, std::string value);
   std::string getVariable(std::string name);
 
@@ -70,20 +74,15 @@ public:
   void error(const yy::location& l, const std::string& m);
   void error(const std::string& m);
 
-  std::tuple<std::string, unsigned int> createAssertionBody(LogicalOperation *l,
-                                                            std::string parent = "",
-                                                            unsigned int x = 0,
-                                                            unsigned int y = 0);
-  void connectAssertions(std::list<std::tuple<std::string, unsigned int> > l);
+  blockPortMapping createAssertionBody(LogicalOperation *l,
+                                       std::string parent = "",
+                                       unsigned int y = 0);
+  void connectAssertions(std::list<blockPortMapping> l);
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
-  void createSignalBlock();
-  std::tuple<std::string, unsigned int> createExpression(MathOperation * e,
-                                                         std::string parent = "",
-                                                         unsigned int x = 0,
-                                                         unsigned int y = 0);
-  void createConstantBlock(std::string v);
-  void createReferenceBlock();
+  blockPortMapping createExpression(MathOperation * e,
+                                    std::string parent = "",
+                                    unsigned int y = 0);
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,
                                               MathOperation *b = nullptr);

@@ -6,10 +6,14 @@ std::ostream& operator<<(std::ostream& os, const TimeInterval &obj)
   return os;
 }
 
-
 void foundConstantBlock(std::string v)
 {
   std::cout << "--|--|--|--|--|--) foundConstantBlock [" << v << "]" << std::endl;
+}
+
+void foundPortBlock(std::string v)
+{
+  std::cout << "--|--|--|--|--|--) foundPortBlock [" << v << "]" << std::endl;
 }
 
 void foundMainTimeRange(TimeInterval t)

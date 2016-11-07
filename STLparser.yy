@@ -71,11 +71,6 @@ NEQUAL    "!="
 ;
 
 %token
-INPUT           "SIG"
-REFERENCE       "REF"
-;
-
-%token
 ISSTEP      "isStep"
 DIFF        "diff"
 ;
@@ -155,7 +150,7 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 
 assertion:
 assertionOp time_range "(" boolExp ")" {
-  std::list<std::tuple<std::string, unsigned int>> l;
+  std::list<blockPortMapping> l;
   l.push_back(driver.createAssertionBody($4));
   driver.connectAssertions(l);
   foundMainTimeRange($2);
@@ -241,6 +236,10 @@ exp "*" exp {
   $$ = $1;
 }
 | VAR           {
+  if (driver.portExists($1)) {
+    error (yyla.location, "variable named <" + $1 + "> already defined in model");
+    YYABORT;
+  }
   if (!driver.variableExists($1)) {
     error (yyla.location, "undefined variable <" + $1 + ">");
     YYABORT;
@@ -281,15 +280,7 @@ expWP1 "*" expWP1 {
 ;
 
 expWP3:
-INPUT         {
-  $$ = driver.createMathBlock(SIG);
-  driver.createSignalBlock();
-}
-| REFERENCE     {
-  $$ = driver.createMathBlock(REF);
-  driver.createReferenceBlock();
-}
-| FNUM          {
+FNUM          {
   $$ = driver.createMathBlock(CONST);
   $$->value = $1;
   foundConstantBlock($1);
@@ -300,14 +291,18 @@ INPUT         {
   foundConstantBlock($1);
 }
 | VAR           {
-  if (!driver.variableExists($1)) {
-    error (yyla.location, "undefined variable <" + $1 + ">");
+  if (driver.variableExists($1)) {
+    $$ = driver.createMathBlock(CONST);
+    $$->value = driver.getVariable($1);
+    foundConstantBlock(driver.getVariable($1));
+  } else if (driver.portExists($1)) {
+    $$ = driver.createMathBlock(PORT);
+    $$->value = $1;
+    foundPortBlock($1);
+  } else {
+    error (yyla.location, "undefined variable or port <" + $1 + ">");
     YYABORT;
   }
-  //$$ = "(" + driver.getVariable($1) + ")";
-  $$ = driver.createMathBlock(CONST);
-  $$->value = driver.getVariable($1);
-  foundConstantBlock(driver.getVariable($1));
 }
 ;
 

@@ -44,9 +44,6 @@ blank [ \t]
 
 "="   return yy::STLparser::make_ASSIGN(loc);
 
-"SIG" return yy::STLparser::make_INPUT(loc);
-"REF" return yy::STLparser::make_REFERENCE(loc);
-
 "isStep" return yy::STLparser::make_ISSTEP(loc);
 "diff" return yy::STLparser::make_DIFF(loc);
 

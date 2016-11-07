@@ -28,20 +28,18 @@ min = stepSize - range;
 [] [0 , T] (isStep(SIG, stepSize) && SIG - REF < max);
 */
 
-//[] (0 , T] (REF + 1 < SIG + 2 * (3 + 4) && (SIG > 5 || SIG < 6));
+//[] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
 
-[] (0 , T] (SIG < 11 && SIG >= 0);
+[] (0 , T] (SIGA < 11 && SIGA >= 0);
 
 // Proposition fails: when?
 // -- The error is generated when the proposition results false
 // How to interpret the relative (internal) time ranges?
 
 // TODO
+// Cleanup volatile memory
 // Internal parser that checks the model input signals and considers them as ports
 // <>
-// With REF only (without SIG), Simulink generates port translation errors
-// -- No problem! There can be no REF without SIG (generate an arror at 
-// -- translation time)
 // Until
 // Create matlab script that exports the signal names to file SF
 // -- SF will be interpreted by the bison scanner and will use those signals as portsl
