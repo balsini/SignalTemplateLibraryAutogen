@@ -11,6 +11,8 @@ STLdriver::STLdriver(const std::string &path) :
   SIG_input(false),
   status(HEADER)
 {
+  this->path = path;
+
   testBlockAppendFile.open(path + "AUTOGEN_testBlock.m", std::ofstream::out);
   if (!testBlockAppendFile.is_open())
     throw "Error opening AUTOGEN_testBlock.m";
@@ -22,8 +24,8 @@ STLdriver::STLdriver(const std::string &path) :
 
 STLdriver::~STLdriver()
 {
-  testBlockAppendFile.close();
   testBlockRoutingAppendFile.close();
+  systemPortsFile.close();
 }
 
 int STLdriver::parse(const std::string &f)
@@ -513,4 +515,30 @@ std::tuple<std::string, unsigned int> STLdriver::createAssertionBody(LogicalOper
   }
 
   return std::make_tuple(ass_name, portRequired);
+}
+
+void STLdriver::parsePorts()
+{
+  systemPortsFile.open(path + "AUTOGEN_portList.txt", std::ifstream::in);
+  if (!systemPortsFile.is_open())
+    throw "Error opening AUTOGEN_portList.txt";
+
+  std::cout << "##parsePorts()" << std::endl;
+
+  std::string portName;
+  while (systemPortsFile.good()) {
+    std::getline(systemPortsFile, portName);
+
+    if (portName.length() > 0)
+      ports.push_back(portName);
+    else
+      break;
+  }
+
+  for (auto p : ports)
+    std::cout << "- " << p << std::endl;
+
+  std::cout << "## DONE" << std::endl;
+
+  testBlockAppendFile.close();
 }

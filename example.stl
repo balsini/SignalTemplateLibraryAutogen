@@ -30,14 +30,14 @@ min = stepSize - range;
 
 //[] (0 , T] (REF + 1 < SIG + 2 * (3 + 4) && (SIG > 5 || SIG < 6));
 
-[] (0 , T] (SIG < 11 && SIG >= 0 U SIG < 11 && SIG >= 0);
+[] (0 , T] (SIG < 11 && SIG >= 0);
 
 // Proposition fails: when?
 // -- The error is generated when the proposition results false
 // How to interpret the relative (internal) time ranges?
 
 // TODO
-// Internal parser that checks the model input signals
+// Internal parser that checks the model input signals and considers them as ports
 // <>
 // With REF only (without SIG), Simulink generates port translation errors
 // -- No problem! There can be no REF without SIG (generate an arror at 

@@ -20,8 +20,12 @@ class STLdriver
 {
   std::ofstream testBlockAppendFile;
   std::ofstream testBlockRoutingAppendFile;
+  std::ifstream systemPortsFile;
+
+  std::string path;
 
   std::map<std::string, std::string> variablesValues;
+  std::list<std::string> ports;
 
   bool REF_input;
   bool SIG_input;
@@ -43,6 +47,7 @@ public:
   // Run the parser on file F.
   // Return 0 on success.
   int parse(const std::string& f);
+  void parsePorts();
 
   // Appends to the AUTOGEN file the given string
   void fileAppend(const std::string &s, std::ofstream &f);
