@@ -11,6 +11,8 @@ const unsigned int position_X_EXP[2] = {80, 150};
 const unsigned int position_X_OP[2] = {190, 210};
 const unsigned int position_X_OUT[2] = {230, 250};
 
+const unsigned int portOffset = 40;
+
 STLdriver::STLdriver(const std::string &path) :
   trace_scanning(false),
   trace_parsing(false),
@@ -209,7 +211,7 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
     testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + exp_name + "_OUT, 'PortHandles');");
     testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + exp_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
 
-    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_IN,'position', [60, 20, 100, 40]);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + exp_name + "_IN,'position', [" + std::to_string(position_X_IN[0]) + ", 20, " + std::to_string(position_X_IN[1]) + ", 40]);");
   } else {// SUM, SUB, MUL, DIV
     // Create mathematical block
 
@@ -258,7 +260,6 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
     /// Create input ports //
     /////////////////////////
 
-    unsigned int portOffset = 20;
     unsigned int portId = 1;
 
     for (auto pm : std::get<1>(A)) {
@@ -318,7 +319,6 @@ void STLdriver::connectSTLFormulas()
     testBlockAppendLn(__FILE__, __LINE__, "add_line(" + TEST_ROOT + ", TEST_ROOT_OP_PORT.Outport(1), TEST_ROOT_OUT_PORT.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
   }
 
-  unsigned int portOffset = 40;
   unsigned int portId = 1;
   unsigned int counter = 1;
 
@@ -455,7 +455,6 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
   /// Create input ports //
   /////////////////////////
 
-  unsigned int portOffset = 40;
   unsigned int portId = 1;
 
   for (auto pm : std::get<1>(A)) {
