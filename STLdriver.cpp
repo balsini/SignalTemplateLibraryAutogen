@@ -352,8 +352,8 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
 {
   unsigned int vpos;
   portMapping requiredPorts;
-  static unsigned int ass_num = 0;
-  std::string ass_name = "Ass_" + std::to_string(ass_num++);
+  static unsigned int STLFormula_num = 0;
+  std::string STLFormula_name = "STLFormula_" + std::to_string(STLFormula_num++);
   blockPortMapping A;
   blockPortMapping B;
 
@@ -364,11 +364,11 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
   unsigned int position_X_OP[2] = {190, 210};
   unsigned int position_X_OUT[2] = {230, 250};
 
-  testBlockAppendLn(__FILE__, __LINE__, ass_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + ass_name + "');");
-  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + ",'position',[" + std::to_string(position_X_EXP[0])+ ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1])+ ", " + std::to_string(vpos + 20) + "])");
+  testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + " = addEmptySubsystem([" + TEST_ROOT + " '" + parent + "'], '" + STLFormula_name + "');");
+  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + ",'position',[" + std::to_string(position_X_EXP[0])+ ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1])+ ", " + std::to_string(vpos + 20) + "])");
 
-  testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OUT']);");
-  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OUT,'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
+  testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + "_OUT = add_block('simulink/Sinks/Out1', [" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "/OUT']);");
+  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + "_OUT,'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
 
   if (l->op == COMPARISON) {
     // Create block containing the TWO comparison expressions
@@ -396,11 +396,11 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
       default: break;
     }
 
-    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + ass_name + "_OP']);");
-    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + relOp + "');");
+    testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "/" + STLFormula_name + "_OP']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + "_OP,'Operator', '" + relOp + "');");
 
-    A = createExpression(l->value->a, parent + "/" + ass_name, 0);
-    B = createExpression(l->value->b, parent + "/" + ass_name, 1);
+    A = createExpression(l->value->a, parent + "/" + STLFormula_name, 0);
+    B = createExpression(l->value->b, parent + "/" + STLFormula_name, 1);
 
   } else {// AND, OR
     //////////////////////////
@@ -425,23 +425,23 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
       default: break;
     }
 
-    testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OP']);");
-    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
+    testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "/OP']);");
+    testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + "_OP,'Operator', '" + logOp + "');");
 
-    A = createSTLFormulaBody(l->a, parent + "/" + ass_name, 0);
-    B = createSTLFormulaBody(l->b, parent + "/" + ass_name, 1);
+    A = createSTLFormulaBody(l->a, parent + "/" + STLFormula_name, 0);
+    B = createSTLFormulaBody(l->b, parent + "/" + STLFormula_name, 1);
   }
-  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+  testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
 
-  testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
-  testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OUT,'PortHandles');");
-  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+  testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + STLFormula_name + "_OP,'PortHandles');");
+  testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + STLFormula_name + "_OUT,'PortHandles');");
+  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
 
   testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
   testBlockAppendLn(__FILE__, __LINE__, "OutPort2 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-  testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + ass_name + "_OP,'PortHandles');");
-  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+  testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + STLFormula_name + "_OP,'PortHandles');");
+  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "'], OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+  testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "'], OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
 
   /////////////////////////
   /// Create input ports //
@@ -455,17 +455,17 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
     if (it == requiredPorts.end()) {
       // Port needs to be created
 
-      testBlockAppendLn(__FILE__, __LINE__, ass_name + pm.first + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + pm.first + "']);");
-      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+      testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + pm.first + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "/" + pm.first + "']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
 
       requiredPorts[pm.first] = portId;
       portId++;
     }
 
     // And line generated
-    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + pm.first + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + STLFormula_name + pm.first + ",'PortHandles');");
     testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(A) + ",'PortHandles');");
-    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "'], OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
   }
 
   for (auto pm : std::get<1>(B)) {
@@ -473,20 +473,20 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
     if (it == requiredPorts.end()) {
       // Port needs to be created
 
-      testBlockAppendLn(__FILE__, __LINE__, ass_name + pm.first + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/" + pm.first + "']);");
-      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+      testBlockAppendLn(__FILE__, __LINE__, STLFormula_name + pm.first + " = add_block('simulink/Sources/In1', [" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "/" + pm.first + "']);");
+      testBlockAppendLn(__FILE__, __LINE__, "set_param(" + STLFormula_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
 
       requiredPorts[pm.first] = portId;
       portId++;
     }
 
     // And line generated
-    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + ass_name + pm.first + ",'PortHandles');");
+    testBlockAppendLn(__FILE__, __LINE__, "OutPort1 = get_param(" + STLFormula_name + pm.first + ",'PortHandles');");
     testBlockAppendLn(__FILE__, __LINE__, "InPort1 = get_param(" + std::get<0>(B) + ",'PortHandles');");
-    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + ass_name + "'], OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
+    testBlockAppendLn(__FILE__, __LINE__, "add_line([" + TEST_ROOT + " '" + parent + "/" + STLFormula_name + "'], OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
   }
 
-  return std::make_tuple(ass_name, requiredPorts);
+  return std::make_tuple(STLFormula_name, requiredPorts);
 }
 
 void STLdriver::parsePorts()
