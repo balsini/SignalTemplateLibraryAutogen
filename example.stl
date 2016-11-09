@@ -31,11 +31,3 @@ min = stepSize - range;
 //[] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
 
 [] (0 , T] (SIGA < 11 && SIGA >= 0);
-
-// How to interpret the relative (internal) time ranges?
-// -- It is up to the AND operator
-
-// TODO
-// Cleanup volatile memory
-// <>
-// Until
