@@ -302,7 +302,7 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
 }
 
 
-void STLdriver::connectAssertions(std::list<blockPortMapping> l)
+void STLdriver::connectSTLFormulas(std::list<blockPortMapping> l)
 {
   portMapping requiredPorts;
 
@@ -348,7 +348,7 @@ void STLdriver::connectAssertions(std::list<blockPortMapping> l)
   }
 }
 
-blockPortMapping STLdriver::createAssertionBody(LogicalOperation *l, std::string parent, unsigned int y)
+blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::string parent, unsigned int y)
 {
   unsigned int vpos;
   portMapping requiredPorts;
@@ -428,8 +428,8 @@ blockPortMapping STLdriver::createAssertionBody(LogicalOperation *l, std::string
     testBlockAppendLn(__FILE__, __LINE__, ass_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + TEST_ROOT + " '" + parent + "/" + ass_name + "/OP']);");
     testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'Operator', '" + logOp + "');");
 
-    A = createAssertionBody(l->a, parent + "/" + ass_name, 0);
-    B = createAssertionBody(l->b, parent + "/" + ass_name, 1);
+    A = createSTLFormulaBody(l->a, parent + "/" + ass_name, 0);
+    B = createSTLFormulaBody(l->b, parent + "/" + ass_name, 1);
   }
   testBlockAppendLn(__FILE__, __LINE__, "set_param(" + ass_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
 

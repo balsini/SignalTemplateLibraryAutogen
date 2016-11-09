@@ -91,7 +91,7 @@ DIFF        "diff"
 %type  <ComparisonOperator> cmpOp
 %type  <std::string>  assignment
 %type  <std::string>  assignments
-%type  <std::string>  assertion
+%type  <std::string>  STLFormula
 %type  <TimeInterval> time_range
 %type  <Border>       lparen
 %type  <Border>       rparen
@@ -135,7 +135,7 @@ body:
 ;
 
 body_line:
-assertion   SEMICOLON
+STLFormula   SEMICOLON
 ;
 
 assignments:
@@ -148,16 +148,16 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 | VAR "=" assignment  { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 ;
 
-assertion:
-assertionOp time_range "(" boolExp ")" {
+STLFormula:
+temporalOperator time_range "(" boolExp ")" {
   std::list<blockPortMapping> l;
-  l.push_back(driver.createAssertionBody($4));
-  driver.connectAssertions(l);
+  l.push_back(driver.createSTLFormulaBody($4));
+  driver.connectSTLFormulas(l);
   foundMainTimeRange($2);
 }
 ;
 
-assertionOp: ALWAYS | EVENTUALLY;
+temporalOperator: ALWAYS | EVENTUALLY;
 
 boolExp:
 "(" boolExp ")" {

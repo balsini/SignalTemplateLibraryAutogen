@@ -74,10 +74,10 @@ public:
   void error(const yy::location& l, const std::string& m);
   void error(const std::string& m);
 
-  blockPortMapping createAssertionBody(LogicalOperation *l,
+  blockPortMapping createSTLFormulaBody(LogicalOperation *l,
                                        std::string parent = "",
                                        unsigned int y = 0);
-  void connectAssertions(std::list<blockPortMapping> l);
+  void connectSTLFormulas(std::list<blockPortMapping> l);
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
