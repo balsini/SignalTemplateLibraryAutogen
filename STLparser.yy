@@ -93,6 +93,7 @@ DIFF        "diff"
 %type  <std::string>  assignments
 %type  <std::string>  STLFormula
 %type  <TimeInterval> time_range
+%type  <TemporalOperator> temporalOperator
 %type  <Border>       lparen
 %type  <Border>       rparen
 
@@ -151,12 +152,19 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 
 STLFormula:
 temporalOperator time_range "(" boolExp ")" {
+  // TODO $1
   foundMainTimeRange($2);
   driver.addSTLFormula(driver.createSTLFormulaBody($4));
 }
 ;
 
-temporalOperator: ALWAYS | EVENTUALLY;
+temporalOperator:
+ALWAYS {
+    $$ = ALWAYS;
+}
+| EVENTUALLY {
+    $$ = EVENTUALLY;
+};
 
 boolExp:
 "(" boolExp ")" {
