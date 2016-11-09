@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
   if (argc != 3) {
-    std::cout << "Please, provide a valid input file path as argument AND a falid output file path" << std::endl;
+    std::cout << "Provide a valid .stl input file path as argument AND the path of the matlab code" << std::endl;
     return -1;
   }
 

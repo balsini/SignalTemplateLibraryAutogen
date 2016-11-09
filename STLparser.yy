@@ -114,7 +114,7 @@ header  {
 }
 body    {
   std::cout << "## Body DONE ##" << std::endl;
-  driver.connectSTLFormulas();
+  driver.createSTLFormulas();
   driver.setStatus(FOOTER);
 }
 footer  {
@@ -154,7 +154,7 @@ STLFormula:
 temporalOperator time_range "(" boolExp ")" {
   // TODO $1
   foundMainTimeRange($2);
-  driver.addSTLFormula(driver.createSTLFormulaBody($4));
+  driver.addSTLFormula($1, $2, $4);
 }
 ;
 

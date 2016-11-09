@@ -30,7 +30,7 @@ class STLdriver
   std::map<std::string, std::string> variablesValues;
   std::list<std::string> ports;
 
-  std::list<blockPortMapping> STLFormulas;
+  std::list<std::tuple<TemporalOperator, TimeInterval, LogicalOperation *> > STLFormulas;
 
   bool REF_input;
   bool SIG_input;
@@ -57,8 +57,8 @@ public:
 
   // Appends to the AUTOGEN file the given string
   void fileAppend(const std::string &s, std::ofstream &f);
-  void testBlockAppendLn(const std::string fileName, int lineNumber, const std::string &s);
-  void testBlockRoutingAppendLn(const std::string fileName, int lineNumber, const std::string &s);
+  void testBlockAppendLn(const std::string fileName, const std::string &functionName, int lineNumber, const std::string &s);
+  void testBlockRoutingAppendLn(const std::string fileName, const std::string &functionName, int lineNumber, const std::string &s);
 
   // Handling the scanner.
   void scan_begin();
@@ -76,17 +76,26 @@ public:
   void error(const yy::location& l, const std::string& m);
   void error(const std::string& m);
 
-  void addSTLFormula(const blockPortMapping f);
-  void connectSTLFormulas();
+  void addSTLFormula(const TemporalOperator &tOp,
+                     const TimeInterval &tIn,
+                     LogicalOperation *l);
+  void createSTLFormulas();
 
   blockPortMapping createSTLFormulaBody(LogicalOperation *l,
-                                       std::string parent = "",
-                                       unsigned int y = 0);
+                                        std::string parent = "",
+                                        unsigned int y = 0,
+                                        std::string BLOCK_ROOT = "");
+#if 0
+  blockPortMapping createSTLFormula(const TemporalOperator &tOp,
+                                    const TimeInterval &tIn,
+                                    LogicalOperation *l);
+#endif
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
                                     std::string parent = "",
-                                    unsigned int y = 0);
+                                    unsigned int y = 0,
+                                    std::string BLOCK_ROOT = "");
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,
                                               MathOperation *b = nullptr);
