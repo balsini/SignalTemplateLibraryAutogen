@@ -113,6 +113,7 @@ header  {
 }
 body    {
   std::cout << "## Body DONE ##" << std::endl;
+  driver.connectSTLFormulas();
   driver.setStatus(FOOTER);
 }
 footer  {
@@ -150,10 +151,8 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 
 STLFormula:
 temporalOperator time_range "(" boolExp ")" {
-  std::list<blockPortMapping> l;
-  l.push_back(driver.createSTLFormulaBody($4));
-  driver.connectSTLFormulas(l);
   foundMainTimeRange($2);
+  driver.addSTLFormula(driver.createSTLFormulaBody($4));
 }
 ;
 

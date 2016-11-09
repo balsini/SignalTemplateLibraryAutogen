@@ -30,6 +30,8 @@ class STLdriver
   std::map<std::string, std::string> variablesValues;
   std::list<std::string> ports;
 
+  std::list<blockPortMapping> STLFormulas;
+
   bool REF_input;
   bool SIG_input;
 
@@ -74,10 +76,12 @@ public:
   void error(const yy::location& l, const std::string& m);
   void error(const std::string& m);
 
+  void addSTLFormula(const blockPortMapping f);
+  void connectSTLFormulas();
+
   blockPortMapping createSTLFormulaBody(LogicalOperation *l,
                                        std::string parent = "",
                                        unsigned int y = 0);
-  void connectSTLFormulas(std::list<blockPortMapping> l);
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
