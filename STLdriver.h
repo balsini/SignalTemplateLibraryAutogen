@@ -88,7 +88,7 @@ public:
   void createSTLFormulaTimeInterval(const TimeInterval &time,
                                     std::string parent,
                                     std::string BLOCK_ROOT);
-  void createSTLFormulaTemporalOperator(const TemporalOperator &op,
+  void createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent,
                                         std::string BLOCK_ROOT);
 #if 0
