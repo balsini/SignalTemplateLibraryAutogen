@@ -88,6 +88,9 @@ public:
   void createSTLFormulaTimeInterval(const TimeInterval &time,
                                     std::string parent,
                                     std::string BLOCK_ROOT);
+  void createSTLFormulaTemporalOperator(const TemporalOperator &op,
+                                        std::string parent,
+                                        std::string BLOCK_ROOT);
 #if 0
   blockPortMapping createSTLFormula(const TemporalOperator &tOp,
                                     const TimeInterval &tIn,

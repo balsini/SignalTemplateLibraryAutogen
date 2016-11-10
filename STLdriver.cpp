@@ -339,6 +339,46 @@ void STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, std::stri
   testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
 }
 
+void STLdriver::createSTLFormulaTemporalOperator(const TemporalOperator &op, std::string parent, std::string BLOCK_ROOT)
+{
+  std::string block_name = parent + "_TIME_OP";
+
+  // Create empty container
+  testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + " = addEmptySubsystem([" + BLOCK_ROOT + " '/" + parent + "'], 'TIME_RANGE');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + ", 'position', [" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80])");
+
+
+  /*
+  // Create internals
+
+  // Output port
+  testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_OUT = add_block('simulink/Sinks/Out1', [" + block_name + " '/OUT']);");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
+
+  // Clock
+  testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_CLOCK = add_block('simulink/Sources/Clock', [" + block_name + " '/CLOCK']);");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CLOCK, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
+
+  // Interval checker
+  testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_CHECK = add_block('simulink/Logic and Bit Operations/Interval Test', [" + block_name + " '/CHECK']);");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CHECK, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CHECK, 'uplimit', '" + time.end + "');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CHECK, 'lowlimit', '" + time.start + "');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CHECK, 'IntervalClosedLeft', '" + time.startClosed + "');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_CHECK, 'IntervalClosedRight', '" + time.endClosed + "');");
+
+  // Connect internals
+
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_CLOCK, 'PortHandles');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_CHECK, 'PortHandles');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_CHECK, 'PortHandles');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+  */
+}
+
 void STLdriver::createSTLFormulas()
 {
   portMapping requiredPorts;
@@ -353,6 +393,8 @@ void STLdriver::createSTLFormulas()
 
     blockPortMapping bpm = createSTLFormulaBody(std::get<2>(ll), formulaName, 0, "ROOT");
     createSTLFormulaTimeInterval(std::get<1>(ll), formulaName, "ROOT");
+    createSTLFormulaTemporalOperator(std::get<0>(ll), formulaName, "ROOT");
+
 
     testBlockAppendLn(__FILE__, __func__, __LINE__, "TEST_ROOT_OUT" + std::get<0>(bpm) + " = add_block('simulink/Sinks/Out1', [ROOT '/" + formulaName + "/VALID']);");
     testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(TEST_ROOT_OUT" + std::get<0>(bpm) + ",'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40]);");
@@ -401,12 +443,6 @@ void STLdriver::createSTLFormulas()
       testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(TEST_ROOT_IN" + pm.first + ", 'PortHandles');");
       testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + formulaName + ", 'PortHandles');");
       testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(ROOT, OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
-
-
-      // And line generated
-      //testBlockRoutingAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(TEST_ROOT" + pm.first + ", 'PortHandles');");
-      //testBlockRoutingAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + std::get<0>(ll) + ", 'PortHandles');");
-      //testBlockRoutingAppendLn(__FILE__, __func__, __LINE__, "add_line(" + TEST_ROOT + ", OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
     }
 
     counter++;
