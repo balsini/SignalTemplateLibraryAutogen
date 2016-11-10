@@ -19,10 +19,10 @@ void foundPortBlock(std::string v)
 void foundMainTimeRange(TimeInterval t)
 {
   std::cout << "--|--) foundMainTimeRange ["
-            << (t.startBorder == INTERVAL_OPEN ? std::string("(") : std::string("["))
+            << (t.startClosed == "off" ? std::string("(") : std::string("["))
             << t.start << " , "
             << t.end
-            << (t.endBorder == INTERVAL_OPEN ? std::string(")") : std::string("]"))
+            << (t.endClosed == "off" ? std::string(")") : std::string("]"))
             << "]" << std::endl;
 }
 

@@ -35,17 +35,27 @@ class TimeInterval
   public:
     TimeInterval(std::string l, Border li, std::string r, Border ri) :
       start(l),
-      end(r),
-      startBorder(li),
-      endBorder(ri)
-    {}
+      end(r)
+    {
+      if (li == INTERVAL_OPEN) {
+        startClosed = "off";
+      } else {
+        startClosed = "on";
+      }
+
+      if (ri == INTERVAL_OPEN) {
+        endClosed = "off";
+      } else {
+        endClosed = "on";
+      }
+    }
 
     TimeInterval() {}
 
     std::string start;
     std::string end;
-    Border startBorder;
-    Border endBorder;
+    std::string startClosed;
+    std::string endClosed;
 };
 
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);
