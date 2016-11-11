@@ -8,7 +8,7 @@ const std::string ADD_LINE_AUTOROUTING = ", 'autorouting','on'";
 const unsigned int position_X_IN[2] = {20, 40};
 const unsigned int position_X_EXP[2] = {80, 150};
 const unsigned int position_X_OP[2] = {190, 210};
-const unsigned int position_X_OUT[2] = {230, 250};
+const unsigned int position_X_OUT[2] = {240, 260};
 
 const unsigned int portOffset = 40;
 
@@ -349,7 +349,7 @@ void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::strin
 
   // Create output port
   testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_OUT = add_block('simulink/Sinks/Out1', [" + block_name + " '/OUT']);");
-  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
+  testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0] + 60) + ", 20, " + std::to_string(position_X_OUT[1] + 60) + ", 40]);");
 
   // Create input ports
   testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_STL = add_block('simulink/Sources/In1', [" + block_name + " '/STL']);");
@@ -359,8 +359,82 @@ void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::strin
 
   switch (op) {
     case ALWAYS:
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_OP1 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + block_name + " '/NOT']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OP1, 'Operator', '" + "NOT" + "');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OP1, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_OP2 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + block_name + " '/OR']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OP2, 'Operator', '" + "OR" + "');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_OP2, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+      // Connect ports
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_OP2, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_TIME, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_OP1, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_STL, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort2 = get_param(" + block_name + "_OP1, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_OP2, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
       break;
     case EVENTUALLY:
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + block_name + " '/AND']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_AND, 'Operator', '" + "AND" + "');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_AND, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_FALL = add_block('simulink/Logic and Bit Operations/Detect Decrease', [" + block_name + " '/FALL_EDGE']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FALL, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_TRUE = addConst(" + block_name + ", 'TRUE', '1');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_TRUE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 100, " + std::to_string(position_X_EXP[1])+ ", 120]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_FALSE = addConst(" + block_name + ", 'FALSE', '0');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FALSE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 140, " + std::to_string(position_X_EXP[1])+ ", 160]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_FFSR = add_block('simulink_extras/Flip Flops/S-R Flip-Flop', [" + block_name + " '/FFSR']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FFSR, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_NULL = add_block('simulink/Sinks/Terminator', [" + block_name + " '/NULL']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_NULL, 'position',[" + std::to_string(position_X_OP[0])+ ", 140, " + std::to_string(position_X_OP[1])+ ", 160]);");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_SWITCH = add_block('simulink/Signal Routing/Switch', [" + block_name + " '/SWITCH']);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_SWITCH, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 120]);");
+
+      // Connect ports
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_STL, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort2 = get_param(" + block_name + "_TIME, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_AND, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort2 = get_param(" + block_name + "_FALL, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort2.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_AND, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort2 = get_param(" + block_name + "_FALSE, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_NULL, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(2), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort2 = get_param(" + block_name + "_FALL, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort3 = get_param(" + block_name + "_TRUE, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_SWITCH, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort3.Outport(1), InPort1.Inport(3)" + ADD_LINE_AUTOROUTING + ");");
+
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "OutPort1 = get_param(" + block_name + "_SWITCH, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
       break;
     default:
       break;

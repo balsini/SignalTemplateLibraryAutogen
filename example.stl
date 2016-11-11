@@ -31,4 +31,4 @@ min = stepSize - range;
 [] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
 [] (0 , T] (SIGA < 11 && SIGA >= 0);
 [] (0 , T] (SIGA < 11 && SIGA >= 0);
-[] (1 , 3] (SIGA < 5);
+<> [1 , 2] (SIGA < 5);
