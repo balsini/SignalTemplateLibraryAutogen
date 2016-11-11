@@ -392,9 +392,11 @@ void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::strin
 
       testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_TRUE = addConst(" + block_name + ", 'TRUE', '1');");
       testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_TRUE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 100, " + std::to_string(position_X_EXP[1])+ ", 120]);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_TRUE, 'OutDataTypeStr', 'boolean');");
 
       testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_FALSE = addConst(" + block_name + ", 'FALSE', '0');");
       testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FALSE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 140, " + std::to_string(position_X_EXP[1])+ ", 160]);");
+      testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FALSE, 'OutDataTypeStr', 'boolean');");
 
       testBlockAppendLn(__FILE__, __func__, __LINE__, block_name + "_FFSR = add_block('simulink_extras/Flip Flops/S-R Flip-Flop', [" + block_name + " '/FFSR']);");
       testBlockAppendLn(__FILE__, __func__, __LINE__, "set_param(" + block_name + "_FFSR, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
