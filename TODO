@@ -4,3 +4,9 @@ Cleanup volatile memory
 -- maybe using smart pointers
 Implementation of the relative (internal) time ranges
 -- with an extension of the AND operator
+
+-/--/--/--/--/--/--/--/--/--/--/--/--/-
+
+QUESTIONS
+
+As shown in formula 14, is it required to add a timing constraint for the Until operator?

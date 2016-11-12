@@ -173,12 +173,13 @@ ALWAYS {
 boolExp:
 "(" boolExp ")" {
   $$ = $2;
-  //driver.appendln("\"(\" boolExp \")\"");
 }
 | boolExp boolOp boolExp  {
   $$ = driver.createLogicalBlock($2, $1, $3);
-  //driver.appendln("boolExp boolOp boolExp");
-  //foundComparisonExpression($2, $1, $3);
+}
+| boolExp AND temporalOperator time_range boolExp  {
+  $$ = driver.createLogicalBlock(AND, $1, $5);
+  std::cout << "--------------------------->Found relative time range" << std::endl;
 }
 | cmp                   {
   $$ = driver.createLogicalBlock(COMPARISON);
