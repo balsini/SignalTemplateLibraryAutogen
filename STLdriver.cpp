@@ -331,17 +331,63 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
 std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
 {
   // Create empty container
-  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_OP[0], position_X_OP[1], 100, 120);
-
-  // Create output port
-  testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0] + 60) + ", 20, " + std::to_string(position_X_OUT[1] + 60) + ", 40]);");
+  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_OP[0], position_X_OP[1], 20, 120);
 
   // Create input ports
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_ENABLE = add_block('simulink/Sources/In1', [" + name + " '/ENABLE']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ENABLE, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
   testBlockAppendLn(SRC_INFO_TEMP, name + "_FIRST = add_block('simulink/Sources/In1', [" + name + " '/FIRST']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FIRST, 'position',[" + std::to_string(position_X_IN[0])+ ", 60, " + std::to_string(position_X_IN[1])+ ", 80]);");
   testBlockAppendLn(SRC_INFO_TEMP, name + "_SECOND = add_block('simulink/Sources/In1', [" + name + " '/SECOND']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SECOND, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SECOND, 'position',[" + std::to_string(position_X_IN[0])+ ", 100, " + std::to_string(position_X_IN[1])+ ", 120]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_NOT1 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/NOT1']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NOT1, 'Operator', '" + "NOT" + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NOT1, 'position',[80, 60, 100, 80]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_NOT2 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/NOT2']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NOT2, 'Operator', '" + "NOT" + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NOT2, 'position',[140, 20, 160, 40]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/AND']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'Operator', '" + "AND" + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'position',[140, 60, 160, 80]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_FFSR = add_block('simulink_extras/Flip Flops/S-R Flip-Flop', [" + name + " '/FFSR']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FFSR, 'position',[200, 60, 220, 80]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = addConst(" + name + ", 'FALSE', '0');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'position',[140, 100, 160, 120]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'OutDataTypeStr', 'boolean');");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_NULL = add_block('simulink/Sinks/Terminator', [" + name + " '/NULL']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NULL, 'position',[260, 60, 280, 80]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_SWITCH = add_block('simulink/Signal Routing/Switch', [" + name + " '/SWITCH']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SWITCH, 'position',[260, 100, 280, 160]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_OR = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/OR']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OR, 'Operator', '" + "OR" + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OR, 'position',[320, 20, 340, 40]);");
+
+  // Create output port
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[380, 20, 400, 40]);");
+
+  // Create links
+  createLine(SRC_INFO, name + "_ENABLE", name + "_NOT2", name);
+  createLine(SRC_INFO, name + "_ENABLE", name + "_AND", name);
+  createLine(SRC_INFO, name + "_FIRST", name + "_NOT1", name);
+  createLine(SRC_INFO, name + "_SECOND", name + "_SWITCH", name, 1, 3);
+  createLine(SRC_INFO, name + "_NOT1", name + "_AND", name, 1, 2);
+  createLine(SRC_INFO, name + "_AND", name + "_FFSR", name);
+  createLine(SRC_INFO, name + "_FFSR", name + "_NULL", name);
+  createLine(SRC_INFO, name + "_FFSR", name + "_SWITCH", name, 2, 2);
+  createLine(SRC_INFO, name + "_FIRST", name + "_SWITCH", name);
+  createLine(SRC_INFO, name + "_NOT2", name + "_OR", name);
+  createLine(SRC_INFO, name + "_OR", name + "_OUT", name);
+  createLine(SRC_INFO, name + "_SWITCH", name + "_OR", name, 1, 2);
+  createLine(SRC_INFO, name + "_FALSE", name + "_FFSR", name, 1, 2);
 
   return name;
 }
@@ -379,7 +425,7 @@ std::string STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, co
 std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::string parent)
 {
   // Create empty container
-  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_OP[0], position_X_OP[1], 20, 40);
+  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_OP[0], position_X_OP[1], 20, 80);
 
   // Create output port
   testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
@@ -482,19 +528,21 @@ void STLdriver::createSTLFormulas()
     createLine(SRC_INFO, formulaName, formulaName + "_ASSERT", "ROOT");
 
     std::string ti = createSTLFormulaTimeInterval(std::get<1>(ll), formulaName);
-    std::string to = createSTLFormulaTemporalOperator(std::get<0>(ll), formulaName);
-
-    createLine(SRC_INFO, to, formulaName + "_OUT", formulaName);
-    createLine(SRC_INFO, ti, to, formulaName, 1, 1);
 
 
     if (std::get<3>(ll) == nullptr) {
-      createLine(SRC_INFO, std::get<0>(bpm), to, formulaName, 1, 2);
-    } else {
-      createLine(SRC_INFO, std::get<0>(bpm), untilBlock, formulaName, 1, 1);
-      createLine(SRC_INFO, std::get<0>(bpm2), untilBlock, formulaName, 1, 2);
+      std::string to = createSTLFormulaTemporalOperator(std::get<0>(ll), formulaName);
 
-      createLine(SRC_INFO, untilBlock, to, formulaName, 1, 2);
+      createLine(SRC_INFO, ti, to, formulaName, 1, 1);
+      createLine(SRC_INFO, std::get<0>(bpm), to, formulaName, 1, 2);
+
+      createLine(SRC_INFO, to, formulaName + "_OUT", formulaName);
+    } else {
+      createLine(SRC_INFO, ti, untilBlock, formulaName, 1, 1);
+      createLine(SRC_INFO, std::get<0>(bpm), untilBlock, formulaName, 1, 2);
+      createLine(SRC_INFO, std::get<0>(bpm2), untilBlock, formulaName, 1, 3);
+
+      createLine(SRC_INFO, untilBlock, formulaName + "_OUT", formulaName);
     }
 
     portMapping localRequiredPorts;
