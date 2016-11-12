@@ -18,6 +18,7 @@ YY_DECL;
 
 typedef std::map<std::string, unsigned int> portMapping;
 typedef std::tuple<std::string, portMapping> blockPortMapping;
+typedef std::tuple<std::string, std::string, int> srcInfo;
 
 class STLdriver
 {
@@ -36,6 +37,13 @@ class STLdriver
   bool SIG_input;
 
   DriverStatus status;
+
+  void createLine(srcInfo code,
+                  const std::string &src,
+                  const std::string &dst,
+                  const std::string &root,
+                  unsigned int src_p = 1,
+                  unsigned int dst_p = 1);
 
 public:
   STLdriver(const std::string &path);
@@ -57,8 +65,8 @@ public:
 
   // Appends to the AUTOGEN file the given string
   void fileAppend(const std::string &s, std::ofstream &f);
-  void testBlockAppendLn(const std::string fileName, const std::string &functionName, int lineNumber, const std::string &s);
-  void testBlockRoutingAppendLn(const std::string fileName, const std::string &functionName, int lineNumber, const std::string &s);
+  void testBlockAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s);
+  void testBlockRoutingAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s);
 
   // Handling the scanner.
   void scan_begin();
