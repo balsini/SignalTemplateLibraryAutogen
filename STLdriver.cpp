@@ -198,34 +198,34 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
                                              std::string BLOCK_ROOT)
 {
   unsigned int vpos;
-  static unsigned int exp_num = 0;
+  static unsigned int identifier = 0;
   portMapping requiredPorts;
-  std::string exp_name = "Exp_" + std::to_string(exp_num++);
+  std::string name = "Exp_" + std::to_string(identifier++);
 
   vpos = 40 * y + 20;
 
-  testBlockAppendLn(SRC_INFO_TEMP, exp_name + " = addEmptySubsystem([" + BLOCK_ROOT + " '/" + parent + "'], '" + exp_name + "');");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + ",'position',[" + std::to_string(position_X_EXP[0]) + ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1]) + ", " + std::to_string(vpos + 20) + "]);");
+  testBlockAppendLn(SRC_INFO_TEMP, name + " = addEmptySubsystem([" + BLOCK_ROOT + " '/" + parent + "'], '" + name + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + ",'position',[" + std::to_string(position_X_EXP[0]) + ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1]) + ", " + std::to_string(vpos + 20) + "]);");
 
-  testBlockAppendLn(SRC_INFO_TEMP, exp_name + "_OUT = add_block('simulink/Sinks/Out1', [" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "/OUT']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/OUT']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
 
   if (e->op == CONST || e->op == PORT) {
     // Create block containing input port or constant values
 
     if (e->op == CONST) {
-      testBlockAppendLn(SRC_INFO_TEMP, exp_name + "_IN = addConst([" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "'], '" + exp_name + "', '" + e->value + "');");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = addConst([" + BLOCK_ROOT + " '/" + parent + "/" + name + "'], '" + name + "', '" + e->value + "');");
     } else if (e->op == PORT) {
       std::string portName = e->value;
 
-      testBlockAppendLn(SRC_INFO_TEMP, exp_name + "_IN = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "/" + portName + "']);");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/" + portName + "']);");
 
       requiredPorts[portName] = 1;
     }
 
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + "_IN,'position', [" + std::to_string(position_X_IN[0]) + ", 20, " + std::to_string(position_X_IN[1]) + ", 40]);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_IN,'position', [" + std::to_string(position_X_IN[0]) + ", 20, " + std::to_string(position_X_IN[1]) + ", 40]);");
 
-    createLine(SRC_INFO, exp_name + "_IN", exp_name + "_OUT", "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']");
+    createLine(SRC_INFO, name + "_IN", name + "_OUT", "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']");
   } else {// SUM, SUB, MUL, DIV
     // Create mathematical block
 
@@ -246,23 +246,23 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
       default: break;
     }
 
-    testBlockAppendLn(SRC_INFO_TEMP, exp_name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "/" + exp_name + "_OP']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + "_OP,'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 40]);");
+    testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/" + name + "_OP']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 40]);");
 
     ///////////////////////////
     /// Generate expressions //
     ///////////////////////////
 
-    blockPortMapping A = createExpression(e->a, parent + "/" + exp_name, 0, BLOCK_ROOT);
-    blockPortMapping B = createExpression(e->b, parent + "/" + exp_name, 1, BLOCK_ROOT);
+    blockPortMapping A = createExpression(e->a, parent + "/" + name, 0, BLOCK_ROOT);
+    blockPortMapping B = createExpression(e->b, parent + "/" + name, 1, BLOCK_ROOT);
 
     /////////////////////////////////////
     /// Create output port connections //
     /////////////////////////////////////
 
-    createLine(SRC_INFO, exp_name + "_OP", exp_name + "_OUT", "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']");
-    createLine(SRC_INFO, std::get<0>(A), exp_name + "_OP", "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']", 1, 1);
-    createLine(SRC_INFO, std::get<0>(B), exp_name + "_OP", "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']", 1, 2);
+    createLine(SRC_INFO, name + "_OP", name + "_OUT", "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']");
+    createLine(SRC_INFO, std::get<0>(A), name + "_OP", "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']", 1, 1);
+    createLine(SRC_INFO, std::get<0>(B), name + "_OP", "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']", 1, 2);
 
     /////////////////////////
     /// Create input ports //
@@ -275,15 +275,15 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
       if (it == requiredPorts.end()) {
         // Port needs to be created
 
-        testBlockAppendLn(SRC_INFO_TEMP, exp_name + pm.first + " = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+        testBlockAppendLn(SRC_INFO_TEMP, name + pm.first + " = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/" + pm.first + "']);");
+        testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
 
         requiredPorts[pm.first] = portId;
         portId++;
       }
 
       // And line generated
-      createLine(SRC_INFO, exp_name + pm.first, std::get<0>(A), "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']", 1, pm.second);
+      createLine(SRC_INFO, name + pm.first, std::get<0>(A), "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']", 1, pm.second);
     }
 
     for (auto pm : std::get<1>(B)) {
@@ -291,19 +291,19 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
       if (it == requiredPorts.end()) {
         // Port needs to be created
 
-        testBlockAppendLn(SRC_INFO_TEMP, exp_name + pm.first + " = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + exp_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+        testBlockAppendLn(SRC_INFO_TEMP, name + pm.first + " = add_block('simulink/Sources/In1', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/" + pm.first + "']);");
+        testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
 
         requiredPorts[pm.first] = portId;
         portId++;
       }
 
       // And line generated
-      createLine(SRC_INFO, exp_name + pm.first, std::get<0>(B), "[" + BLOCK_ROOT + " '/" + parent + "/" + exp_name + "']", 1, pm.second);
+      createLine(SRC_INFO, name + pm.first, std::get<0>(B), "[" + BLOCK_ROOT + " '/" + parent + "/" + name + "']", 1, pm.second);
     }
   }
 
-  return std::make_tuple(exp_name, requiredPorts);
+  return std::make_tuple(name, requiredPorts);
 }
 
 void STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, std::string parent, std::string BLOCK_ROOT)
@@ -633,10 +633,6 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::strin
     // And line generated
 
     createLine(SRC_INFO, STLFormula_name + pm.first, std::get<0>(B), "[" + BLOCK_ROOT + " '/" + parent + "/" + STLFormula_name + "']", 1, pm.second);
-
-    //testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + STLFormula_name + pm.first + ", 'PortHandles');");
-    //testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + std::get<0>(B) + ", 'PortHandles');");
-    //testBlockAppendLn(SRC_INFO_TEMP, "add_line([" + BLOCK_ROOT + " '/" + parent + "/" + STLFormula_name + "'], OutPort1.Outport(1), InPort1.Inport(" + std::to_string(pm.second) + ")" + ADD_LINE_AUTOROUTING + ");");
   }
 
   return std::make_tuple(STLFormula_name, requiredPorts);
