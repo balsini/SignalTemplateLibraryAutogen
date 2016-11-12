@@ -192,6 +192,19 @@ void STLdriver::createLine(srcInfo code,
   testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "add_line(" + root + ", OutPort1.Outport(" + std::to_string(src_p) + "), InPort1.Inport(" + std::to_string(dst_p) + ")" + ADD_LINE_AUTOROUTING + ");");
 }
 
+/**
+ * @brief Creates a block containing the expression.
+ * This is a recursive function that explores the expression tree,
+ * where the leaves nodes are constant values or ports and the other
+ * nodes are operation performed on child nodes.
+ *
+ * In order, this function:
+ * 1) Creates an empty container and its exit port. This container
+ * represents the actual expression.
+ * 2) In case of leaf node if fills the container with a constant value
+ * or input port, otherwise it creates the mathematical operator and performs
+ * a recursive call in order to create the expressions subtrees.
+ */
 blockPortMapping STLdriver::createExpression(MathOperation * e,
                                              std::string parent,
                                              unsigned int y,
@@ -204,6 +217,7 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
 
   vpos = 40 * y + 20;
 
+  // Create empty container block
   testBlockAppendLn(SRC_INFO_TEMP, name + " = addEmptySubsystem([" + BLOCK_ROOT + " '/" + parent + "'], '" + name + "');");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + ",'position',[" + std::to_string(position_X_EXP[0]) + ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1]) + ", " + std::to_string(vpos + 20) + "]);");
 
