@@ -96,26 +96,17 @@ public:
   void createSTLFormulas();
 
   blockPortMapping createSTLFormulaBody(LogicalOperation *l,
-                                        std::string parent = "",
-                                        unsigned int y = 0,
-                                        std::string BLOCK_ROOT = "");
-  void createSTLFormulaTimeInterval(const TimeInterval &time,
-                                    std::string parent,
-                                    std::string BLOCK_ROOT);
-  void createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent,
-                                        std::string BLOCK_ROOT);
-#if 0
-  blockPortMapping createSTLFormula(const TemporalOperator &tOp,
-                                    const TimeInterval &tIn,
-                                    LogicalOperation *l);
-#endif
+                                        unsigned int y = 0);
+  std::string createSTLFormulaTimeInterval(const TimeInterval &time,
+                                    std::string parent);
+  std::string createSTLFormulaTemporalOperator(TemporalOperator op,
+                                        std::string parent);
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
-                                    std::string parent = "",
-                                    unsigned int vpos = 0,
-                                    std::string BLOCK_ROOT = "");
+                                    std::string parent,
+                                    unsigned int vpos = 0);
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,
                                               MathOperation *b = nullptr);
