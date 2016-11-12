@@ -152,9 +152,13 @@ VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
 
 STLFormula:
 temporalOperator time_range "(" boolExp ")" {
-  // TODO $1
   foundMainTimeRange($2);
   driver.addSTLFormula($1, $2, $4);
+}
+| temporalOperator time_range "(" boolExp UNTIL boolExp ")" {
+  foundUntil();
+  foundMainTimeRange($2);
+  driver.addSTLFormula($1, $2, $4, $6);
 }
 ;
 

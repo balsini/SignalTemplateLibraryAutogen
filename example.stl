@@ -34,5 +34,5 @@ min = stepSize - range;
 //<> [1 , 2] (SIGA < 5);
 //[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
 //[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
-[] [0 , 4] (SIGA < REFA);
-[] [0 , 4] (REFA > SIGA);
+[] [0 , 4] (SIGA < 20);
+[] [0 , 4] (REFA < 5 U REFA > 0 && REFA < 11 && SIGA < 100);

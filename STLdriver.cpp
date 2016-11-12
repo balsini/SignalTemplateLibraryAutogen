@@ -328,10 +328,28 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
   return std::make_tuple(name, requiredPorts);
 }
 
-std::string STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, std::string parent)
+std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
 {
   // Create empty container
-  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], 60, 80);
+  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_OP[0], position_X_OP[1], 100, 120);
+
+  // Create output port
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0] + 60) + ", 20, " + std::to_string(position_X_OUT[1] + 60) + ", 40]);");
+
+  // Create input ports
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_FIRST = add_block('simulink/Sources/In1', [" + name + " '/FIRST']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FIRST, 'position',[" + std::to_string(position_X_IN[0])+ ", 60, " + std::to_string(position_X_IN[1])+ ", 80]);");
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_SECOND = add_block('simulink/Sources/In1', [" + name + " '/SECOND']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SECOND, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
+
+  return name;
+}
+
+std::string STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, const std::string &parent)
+{
+  // Create empty container
+  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], 20, 40);
 
   // Create internals
 
@@ -368,10 +386,10 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0] + 60) + ", 20, " + std::to_string(position_X_OUT[1] + 60) + ", 40]);");
 
   // Create input ports
-  testBlockAppendLn(SRC_INFO_TEMP, name + "_STL = add_block('simulink/Sources/In1', [" + name + " '/STL']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_STL, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
   testBlockAppendLn(SRC_INFO_TEMP, name + "_TIME = add_block('simulink/Sources/In1', [" + name + " '/TIME']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TIME, 'position',[" + std::to_string(position_X_IN[0])+ ", 60, " + std::to_string(position_X_IN[1])+ ", 80]);");
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_STL = add_block('simulink/Sources/In1', [" + name + " '/STL']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_STL, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
 
   switch (op) {
     case ALWAYS:
@@ -445,31 +463,56 @@ void STLdriver::createSTLFormulas()
   for (auto ll : STLFormulas) {
     std::string formulaName = createEmptyBlock(SRC_INFO, "ROOT", position_X_EXP[0], position_X_EXP[1], portOffset * counter + 20, portOffset * counter + 20 + 20);
 
-    blockPortMapping bpm = createSTLFormulaBody(std::get<2>(ll), formulaName);
+    blockPortMapping bpm = createSTLFormulaBody(std::get<2>(ll), formulaName, 1);
 
-    testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_OUT" + std::get<0>(bpm) + " = add_block('simulink/Sinks/Out1', [ROOT '/" + formulaName + "/VALID']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_OUT" + std::get<0>(bpm) + ",'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40]);");
+    std::string untilBlock;
+    blockPortMapping bpm2;
 
-    testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_ASSERTION_" + std::get<0>(bpm) + " = add_block('simulink/Model Verification/Assertion', [ROOT '/VALID_" + std::to_string(counter) + "']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_ASSERTION_" + std::get<0>(bpm) + ",'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
+    if (std::get<3>(ll) != nullptr) {
+      bpm2 = createSTLFormulaBody(std::get<3>(ll), formulaName, 2);
+      untilBlock = createSTLFormulaUntil(formulaName);
+    }
 
-    createLine(SRC_INFO, formulaName, "TEST_ROOT_ASSERTION_" + std::get<0>(bpm), "ROOT");
+    testBlockAppendLn(SRC_INFO_TEMP, formulaName + "_OUT = add_block('simulink/Sinks/Out1', [ROOT '/" + formulaName + "/VALID']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + "_OUT, 'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40]);");
+
+    testBlockAppendLn(SRC_INFO_TEMP, formulaName + "_ASSERT = add_block('simulink/Model Verification/Assertion', [ROOT '/VALID_" + std::to_string(counter) + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
+
+    createLine(SRC_INFO, formulaName, formulaName + "_ASSERT", "ROOT");
 
     std::string ti = createSTLFormulaTimeInterval(std::get<1>(ll), formulaName);
     std::string to = createSTLFormulaTemporalOperator(std::get<0>(ll), formulaName);
 
-    createLine(SRC_INFO, to, "TEST_ROOT_OUT" + std::get<0>(bpm), formulaName);
-    createLine(SRC_INFO, std::get<0>(bpm), to, formulaName);
-    createLine(SRC_INFO, ti, to, formulaName, 1, 2);
+    createLine(SRC_INFO, to, formulaName + "_OUT", formulaName);
+    createLine(SRC_INFO, ti, to, formulaName, 1, 1);
+
+
+    if (std::get<3>(ll) == nullptr) {
+      createLine(SRC_INFO, std::get<0>(bpm), to, formulaName, 1, 2);
+    } else {
+      createLine(SRC_INFO, std::get<0>(bpm), untilBlock, formulaName, 1, 1);
+      createLine(SRC_INFO, std::get<0>(bpm2), untilBlock, formulaName, 1, 2);
+
+      createLine(SRC_INFO, untilBlock, to, formulaName, 1, 2);
+    }
+
+    portMapping localRequiredPorts;
 
     // Create ports required by the formula
     unsigned int portId = 1;
+    bool portFound = false;
     for (auto pm : std::get<1>(bpm)) {
 
-      // Create port inside block
-      testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + formulaName + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + formulaName + "/" + pm.first + "']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + formulaName + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+      portMapping::iterator itl = localRequiredPorts.find(std::get<0>(pm));
+      if (itl == localRequiredPorts.end()) {
+        // Create port inside block
+        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + formulaName + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + formulaName + "/" + pm.first + "']);");
+        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + formulaName + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
 
+        localRequiredPorts[std::get<0>(pm)] = portId;
+        portFound = true;
+      }
       // And line inside block
       createLine(SRC_INFO, "TEST_ROOT_IN" + formulaName + pm.first, std::get<0>(bpm), formulaName, 1, pm.second);
 
@@ -485,15 +528,53 @@ void STLdriver::createSTLFormulas()
       }
 
       // And line outside block
-      createLine(SRC_INFO, "TEST_ROOT_IN" + pm.first, formulaName, "ROOT", 1, portId);
-      portId++;
+      if (portFound) {
+        portFound = false;
+
+        createLine(SRC_INFO, "TEST_ROOT_IN" + pm.first, formulaName, "ROOT", 1, portId);
+        portId++;
+      }
+    }
+
+    for (auto pm : std::get<1>(bpm2)) {
+
+      portMapping::iterator itl = localRequiredPorts.find(std::get<0>(pm));
+      if (itl == localRequiredPorts.end()) {
+        // Create port inside block
+        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + formulaName + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + formulaName + "/" + pm.first + "']);");
+        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + formulaName + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+
+        localRequiredPorts[std::get<0>(pm)] = portId;
+        portFound = true;
+      }
+      // And line inside block
+      createLine(SRC_INFO, "TEST_ROOT_IN" + formulaName + pm.first, std::get<0>(bpm2), formulaName, 1, pm.second);
+
+      portMapping::iterator it = requiredPorts.find(std::get<0>(pm));
+      if (it == requiredPorts.end()) {
+        // Port needs to be created
+
+        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + pm.first + "']);");
+        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20 + 20) + "]);");
+
+        requiredPorts[std::get<0>(pm)] = mainPortId;
+        mainPortId++;
+      }
+
+      // And line outside block
+      if (portFound) {
+        portFound = false;
+
+        createLine(SRC_INFO, "TEST_ROOT_IN" + pm.first, formulaName, "ROOT", 1, portId);
+        portId++;
+      }
     }
 
     counter++;
   }
 }
 
-blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, std::string parent, unsigned int vpos)
+blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, const std::string &parent, unsigned int vpos)
 {
   unsigned int y = 40 * vpos + 20;
   portMapping requiredPorts;
@@ -635,7 +716,8 @@ void STLdriver::parsePorts()
 
 void STLdriver::addSTLFormula(const TemporalOperator &tOp,
                               const TimeInterval &tIn,
-                              LogicalOperation *l)
+                              LogicalOperation *l,
+                              LogicalOperation *u)
 {
-  STLFormulas.push_back(std::make_tuple(tOp, tIn, l));
+  STLFormulas.push_back(std::make_tuple(tOp, tIn, l, u));
 }

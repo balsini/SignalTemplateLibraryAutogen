@@ -60,6 +60,7 @@ class TimeInterval
 
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);
 
+void foundUntil();
 void foundConstantBlock(std::string v);
 void foundPortBlock(std::string v);
 void foundMainTimeRange(TimeInterval t);

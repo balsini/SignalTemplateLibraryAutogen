@@ -31,7 +31,7 @@ class STLdriver
   std::map<std::string, std::string> variablesValues;
   std::list<std::string> ports;
 
-  std::list<std::tuple<TemporalOperator, TimeInterval, LogicalOperation *> > STLFormulas;
+  std::list<std::tuple<TemporalOperator, TimeInterval, LogicalOperation *, LogicalOperation *> > STLFormulas;
 
   bool REF_input;
   bool SIG_input;
@@ -92,16 +92,18 @@ public:
 
   void addSTLFormula(const TemporalOperator &tOp,
                      const TimeInterval &tIn,
-                     LogicalOperation *l);
+                     LogicalOperation *l,
+                     LogicalOperation *u = nullptr); // Used for UNTIL
   void createSTLFormulas();
 
   blockPortMapping createSTLFormulaBody(LogicalOperation *l,
-                                        std::string parent,
+                                        const std::string &parent,
                                         unsigned int y = 0);
   std::string createSTLFormulaTimeInterval(const TimeInterval &time,
-                                    std::string parent);
+                                    const std::__cxx11::string &parent);
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);
+  std::string createSTLFormulaUntil(const std::string &parent);
   void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
