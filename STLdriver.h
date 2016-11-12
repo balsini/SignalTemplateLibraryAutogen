@@ -38,6 +38,12 @@ class STLdriver
 
   DriverStatus status;
 
+  std::string createEmptyBlock(srcInfo code,
+                               const std::string &parent,
+                               unsigned int x1,
+                               unsigned int x2,
+                               unsigned int y1,
+                               unsigned int y2);
   void createLine(srcInfo code,
                   const std::string &src,
                   const std::string &dst,
@@ -108,7 +114,7 @@ public:
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
                                     std::string parent = "",
-                                    unsigned int y = 0,
+                                    unsigned int vpos = 0,
                                     std::string BLOCK_ROOT = "");
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,

@@ -180,6 +180,17 @@ void STLdriver::printConstantValues()
 }
 
 
+std::string STLdriver::createEmptyBlock(srcInfo code, const std::string &parent, unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2)
+{
+  static unsigned int identifier = 0;
+  std::string name = "blk" + std::to_string(identifier++);
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + " = addEmptySubsystem(" + parent + ", '" + name + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + ",'position',[" + std::to_string(x1) + ", " + std::to_string(y1) + ", " + std::to_string(x2) + ", " + std::to_string(y2) + "]);");
+
+  return name;
+}
+
 void STLdriver::createLine(srcInfo code,
                            const std::string &src,
                            const std::string &dst,
@@ -207,19 +218,18 @@ void STLdriver::createLine(srcInfo code,
  */
 blockPortMapping STLdriver::createExpression(MathOperation * e,
                                              std::string parent,
-                                             unsigned int y,
+                                             unsigned int vpos,
                                              std::string BLOCK_ROOT)
 {
-  unsigned int vpos;
   static unsigned int identifier = 0;
-  portMapping requiredPorts;
-  std::string name = "Exp_" + std::to_string(identifier++);
+  std::string name = "exp" + std::to_string(identifier++);
 
-  vpos = 40 * y + 20;
+  portMapping requiredPorts;
+  unsigned int y = 40 * vpos + 20;
 
   // Create empty container block
   testBlockAppendLn(SRC_INFO_TEMP, name + " = addEmptySubsystem([" + BLOCK_ROOT + " '/" + parent + "'], '" + name + "');");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + ",'position',[" + std::to_string(position_X_EXP[0]) + ", " + std::to_string(vpos) + ", " + std::to_string(position_X_EXP[1]) + ", " + std::to_string(vpos + 20) + "]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + ",'position',[" + std::to_string(position_X_EXP[0]) + ", " + std::to_string(y) + ", " + std::to_string(position_X_EXP[1]) + ", " + std::to_string(y + 20) + "]);");
 
   testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + BLOCK_ROOT + " '/" + parent + "/" + name + "/OUT']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
@@ -347,14 +357,8 @@ void STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, std::stri
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + block_name + "_CHECK, 'IntervalClosedRight', '" + time.endClosed + "');");
 
   // Connect internals
-
-  testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_CLOCK, 'PortHandles');");
-  testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_CHECK, 'PortHandles');");
-  testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-
-  testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_CHECK, 'PortHandles');");
-  testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
-  testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+  createLine(SRC_INFO, block_name + "_CLOCK", block_name + "_CHECK", block_name);
+  createLine(SRC_INFO, block_name + "_CHECK", block_name + "_OUT", block_name);
 }
 
 void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::string parent, std::string BLOCK_ROOT)
@@ -386,19 +390,10 @@ void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::strin
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + block_name + "_OP2, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
 
       // Connect ports
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_OP2, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_TIME, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_OP1, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_STL, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort2 = get_param(" + block_name + "_OP1, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_OP2, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_OP2", block_name + "_OUT", block_name);
+      createLine(SRC_INFO, block_name + "_TIME", block_name + "_OP1", block_name);
+      createLine(SRC_INFO, block_name + "_STL", block_name + "_OP2", block_name, 1, 1);
+      createLine(SRC_INFO, block_name + "_OP1", block_name + "_OP2", block_name, 1, 2);
       break;
     case EVENTUALLY:
       testBlockAppendLn(SRC_INFO_TEMP, block_name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + block_name + " '/AND']);");
@@ -426,35 +421,20 @@ void STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::strin
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + block_name + "_SWITCH, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 120]);");
 
       // Connect ports
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_STL, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort2 = get_param(" + block_name + "_TIME, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_AND, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort2 = get_param(" + block_name + "_FALL, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort2.Outport(1), InPort2.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_STL", block_name + "_AND", block_name);
+      createLine(SRC_INFO, block_name + "_TIME", block_name + "_AND", block_name, 1, 2);
+      createLine(SRC_INFO, block_name + "_TIME", block_name + "_FALL", block_name);
 
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_AND, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort2 = get_param(" + block_name + "_FALSE, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_AND", block_name + "_FFSR", block_name);
+      createLine(SRC_INFO, block_name + "_FALSE", block_name + "_FFSR", block_name, 1, 2);
 
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_NULL, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(2), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_FFSR", block_name + "_NULL", block_name, 2, 1);
 
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_FFSR, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort2 = get_param(" + block_name + "_FALL, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort3 = get_param(" + block_name + "_TRUE, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_SWITCH, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort2.Outport(1), InPort1.Inport(2)" + ADD_LINE_AUTOROUTING + ");");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort3.Outport(1), InPort1.Inport(3)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_FFSR", block_name + "_SWITCH", block_name, 1, 1);
+      createLine(SRC_INFO, block_name + "_FALL", block_name + "_SWITCH", block_name, 1, 2);
+      createLine(SRC_INFO, block_name + "_TRUE", block_name + "_SWITCH", block_name, 1, 3);
 
-      testBlockAppendLn(SRC_INFO_TEMP, "OutPort1 = get_param(" + block_name + "_SWITCH, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + block_name + "_OUT, 'PortHandles');");
-      testBlockAppendLn(SRC_INFO_TEMP, "add_line(" + block_name + ", OutPort1.Outport(1), InPort1.Inport(1)" + ADD_LINE_AUTOROUTING + ");");
+      createLine(SRC_INFO, block_name + "_SWITCH", block_name + "_OUT", block_name);
       break;
     default:
       break;
@@ -467,10 +447,11 @@ void STLdriver::createSTLFormulas()
 
   unsigned int counter = 0;
   for (auto ll : STLFormulas) {
-    std::string formulaName = "STLFormula_" + std::to_string(counter);
+    std::string formulaVisibleName = "STLFormula_" + std::to_string(counter);
+    std::string formulaName = createEmptyBlock(SRC_INFO, "ROOT", position_X_EXP[0], position_X_EXP[1], portOffset * counter + 20, portOffset * counter + 20 + 20);
 
-    testBlockAppendLn(SRC_INFO_TEMP, formulaName + " = addEmptySubsystem(ROOT, '" + formulaName + "');");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + ",'position',[" + std::to_string(position_X_EXP[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_EXP[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
+    //testBlockAppendLn(SRC_INFO_TEMP, formulaName + " = addEmptySubsystem(ROOT, '" + formulaName + "');");
+    //testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + ",'position',[" + std::to_string(position_X_EXP[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_EXP[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
 
     blockPortMapping bpm = createSTLFormulaBody(std::get<2>(ll), formulaName, 0, "ROOT");
 
