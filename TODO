@@ -2,11 +2,5 @@ TODO
 
 Cleanup volatile memory
 -- maybe using smart pointers
-Until
-
--/--/--/--/--/--/--/--/--/--/--/--/--/-
-
-QUESTIONS
-
-How to interpret the relative (internal) time ranges?
--- it is up to the AND operator!
+Implementation of the relative (internal) time ranges
+-- with an extension of the AND operator
