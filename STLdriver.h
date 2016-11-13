@@ -38,6 +38,7 @@ class STLdriver
 
   DriverStatus status;
 
+  void cleanTree();
   std::string createEmptyBlock(srcInfo code,
                                const std::string &parent,
                                unsigned int x1,
