@@ -6,7 +6,7 @@
 enum Border { INTERVAL_OPEN, INTERVAL_CLOSED };
 enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
-enum LogicalOperator { AND, OR, NOT, COMPARISON };
+enum LogicalOperator { AND, OR, NOT, COMPARISON, ISSTEP };
 enum MathOperator { SUM, SUB, MUL, DIV, CONST, PORT };
 enum TemporalOperator { ALWAYS, EVENTUALLY };
 
@@ -28,6 +28,10 @@ struct LogicalOperation {
     LogicalOperation *a;
     LogicalOperation *b;
     ComparisonOperation *value;
+
+    // For boolean functions
+    MathOperation *arg1;
+    MathOperation *arg2;
 };
 
 class TimeInterval

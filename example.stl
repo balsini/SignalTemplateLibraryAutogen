@@ -24,9 +24,9 @@ min = stepSize - range;
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
 [] (0 , T] (SIG - REF < max);
-
-[] [0 , T] (isStep(SIG, stepSize) && SIG - REF < max);
 */
+
+[] [0 , T] (isStep(SIGA, stepSize) && SIGA - REFA < max);
 
 //[] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
 //[] (0 , T] (SIGA < 11 && SIGA >= 0);
@@ -34,6 +34,6 @@ min = stepSize - range;
 //<> [1 , 2] (SIGA < 5);
 //[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
 //[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
-[] [0 , 4] (SIGA < 20);
-[] [0 , 4] (REFA < 5 U SIGA < 100 && REFA > 0 && REFA < 11);
-[] [0 , 4] (REFA < 5 && <> [0,1] SIGA < 100);
+//[] [0 , 4] (SIGA < 20);
+//[] [0 , 4] (REFA < 5 U SIGA < 100 && REFA > 0 && REFA < 11);
+//[] [0 , 4] (REFA < 5 && <> [0,1] SIGA < 100);

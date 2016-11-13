@@ -189,9 +189,12 @@ boolExp:
 //| NOT "(" cmp ")"             {
   //$$ = driver.createComparisonExpressionBlock(NOT, $3);
 //}
-//| boolFunction        {
-  //$$ = nullptr;
-//}
+| ISSTEP "(" expWP COMMA expWP ")" {
+  std::cout << "----------------> Found isStep()" << std::endl;
+  $$ = driver.createLogicalBlock(ISSTEP);
+  $$->arg1 = $3;
+  $$->arg2 = $5;
+}
 ;
 
 cmp:
@@ -315,12 +318,6 @@ FNUM          {
     error (yyla.location, "undefined variable or port <" + $1 + ">");
     YYABORT;
   }
-}
-;
-
-boolFunction:
-ISSTEP "(" exp "," exp ")" {
-  driver.createIsStepBlock($3, $5);
 }
 ;
 

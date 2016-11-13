@@ -51,6 +51,12 @@ class STLdriver
                   const std::string &root,
                   unsigned int src_p = 1,
                   unsigned int dst_p = 1);
+  std::string createIsStepBlock(srcInfo code,
+                                const std::string &parent,
+                                unsigned int x1,
+                                unsigned int x2,
+                                unsigned int y1,
+                                unsigned int y2);
 
 public:
   STLdriver(const std::string &path);
@@ -101,11 +107,10 @@ public:
                                         const std::string &parent,
                                         unsigned int y = 0);
   std::string createSTLFormulaTimeInterval(const TimeInterval &time,
-                                    const std::__cxx11::string &parent);
+                                    const std::string &parent);
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);
   std::string createSTLFormulaUntil(const std::string &parent);
-  void createIsStepBlock(std::string v1, std::string v2);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,
                                     std::string parent,

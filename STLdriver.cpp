@@ -59,6 +59,10 @@ void cleanLogicalOperation(LogicalOperation *l)
     cleanLogicalOperation(l->b);
   if (l->value)
     cleanComparisonOperation(l->value);
+  if (l->arg1)
+    cleanMathematicalOperation(l->arg1);
+  if (l->arg2)
+    cleanMathematicalOperation(l->arg2);
   delete l;
 }
 
@@ -136,11 +140,6 @@ void STLdriver::testBlockRoutingAppendLn(const std::string &fileName, const std:
   testBlockRoutingAppendFile << std::endl;
 }
 
-void STLdriver::createIsStepBlock(std::string v1, std::string v2)
-{
-  std::cout << "createStepBlock [" + v1 + "] [" + v2 + "]" << std::endl;
-}
-
 void STLdriver::createDiffBlock(std::string v)
 {
   std::cout << "createDiffBlock [" + v + "]" << std::endl;
@@ -180,6 +179,8 @@ LogicalOperation * STLdriver::createLogicalBlock(LogicalOperator op, LogicalOper
   l->a = a;
   l->b = b;
   l->value = nullptr;
+  l->arg1 = nullptr;
+  l->arg2 = nullptr;
 
   return l;
 }
@@ -219,6 +220,42 @@ void STLdriver::printConstantValues()
   }
 
   std::cout << std::endl << "-/--/--/--/--/--/--/--/--/-" << std::endl << std::endl;
+}
+
+std::string STLdriver::createIsStepBlock(srcInfo code, const std::string &parent, unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2)
+{
+  // Create empty container
+  std::string name = createEmptyBlock(SRC_INFO, parent, x1, x2, y1, y2);
+
+  // Create input ports
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_SIG = add_block('simulink/Sources/In1', [" + name + " '/SIG']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SIG, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_H = add_block('simulink/Sources/In1', [" + name + " '/H']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_H, 'position',[" + std::to_string(position_X_IN[0])+ ", 100, " + std::to_string(position_X_IN[1])+ ", 120]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_MEM = add_block('simulink/Discrete/Memory', [" + name + " '/MEM']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_MEM, 'position',[80, 60, 100, 80]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_SUB = add_block('simulink/Math Operations/Subtract', [" + name + " '/SUB']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SUB,'position',[140, 20, 160, 40]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_CMP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + name + " '/CMP']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CMP,'Operator', '>');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CMP,'position',[200, 20, 220, 40]);");
+
+  // Create output port
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[260, 20, 280, 40]);");
+
+  // Create links
+  createLine(SRC_INFO, name + "_SIG", name + "_MEM", name);
+  createLine(SRC_INFO, name + "_SIG", name + "_SUB", name);
+  createLine(SRC_INFO, name + "_MEM", name + "_SUB", name, 1, 2);
+  createLine(SRC_INFO, name + "_SUB", name + "_CMP", name);
+  createLine(SRC_INFO, name + "_H", name + "_CMP", name, 1, 2);
+  createLine(SRC_INFO, name + "_CMP", name + "_OUT", name);
+
+  return name;
 }
 
 std::string STLdriver::createEmptyBlock(srcInfo code, const std::string &parent, unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2)
@@ -717,6 +754,22 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, const std:
     A = createExpression(l->value->a, STLFormula_name, 0);
     B = createExpression(l->value->b, STLFormula_name, 1);
 
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+    createLine(SRC_INFO, STLFormula_name + "_OP", STLFormula_name + "_OUT", STLFormula_name);
+    createLine(SRC_INFO, std::get<0>(A), STLFormula_name + "_OP", STLFormula_name, 1, 1);
+    createLine(SRC_INFO, std::get<0>(B), STLFormula_name + "_OP", STLFormula_name, 1, 2);
+  } else if (l->op == ISSTEP) {
+
+    A = createExpression(l->arg1, STLFormula_name, 0);
+    B = createExpression(l->arg2, STLFormula_name, 1);
+
+    std::string is = createIsStepBlock(SRC_INFO, STLFormula_name, position_X_OP[0], position_X_OP[1], 20, 80);
+
+    createLine(SRC_INFO, is, STLFormula_name + "_OUT", STLFormula_name);
+    createLine(SRC_INFO, std::get<0>(A), is, STLFormula_name, 1, 1);
+    createLine(SRC_INFO, std::get<0>(B), is, STLFormula_name, 1, 2);
+
   } else {// AND, OR
     //////////////////////////
     // Create logical block //
@@ -738,12 +791,14 @@ blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, const std:
 
     A = createSTLFormulaBody(l->a, STLFormula_name, 0);
     B = createSTLFormulaBody(l->b, STLFormula_name, 1);
-  }
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
 
-  createLine(SRC_INFO, STLFormula_name + "_OP", STLFormula_name + "_OUT", STLFormula_name);
-  createLine(SRC_INFO, std::get<0>(A), STLFormula_name + "_OP", STLFormula_name, 1, 1);
-  createLine(SRC_INFO, std::get<0>(B), STLFormula_name + "_OP", STLFormula_name, 1, 2);
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+    createLine(SRC_INFO, STLFormula_name + "_OP", STLFormula_name + "_OUT", STLFormula_name);
+    createLine(SRC_INFO, std::get<0>(A), STLFormula_name + "_OP", STLFormula_name, 1, 1);
+    createLine(SRC_INFO, std::get<0>(B), STLFormula_name + "_OP", STLFormula_name, 1, 2);
+  }
+
 
   /////////////////////////
   /// Create input ports //
