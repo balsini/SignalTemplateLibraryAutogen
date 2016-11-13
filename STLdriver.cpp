@@ -183,9 +183,14 @@ std::string STLdriver::createEmptyBlock(srcInfo code, const std::string &parent,
 {
   static unsigned int identifier = 0;
   std::string name = "blk" + std::to_string(identifier++);
+  std::string path = parent + " '/" + name + "'";
 
-  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), name + " = addEmptySubsystem(" + parent + ", '" + name + "');");
-  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "set_param(" + name + ",'position',[" + std::to_string(x1) + ", " + std::to_string(y1) + ", " + std::to_string(x2) + ", " + std::to_string(y2) + "]);");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), name + " = [" + path + "];");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "add_block('simulink/Ports & Subsystems/Subsystem', " + name + ");");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "delete_line(" + name + ", 'In1/1', 'Out1/1');");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "delete_block([" + path + " '/In1']);");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "delete_block([" + path + " '/Out1']);");
+  testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "set_param(" + name + ", 'position', [" + std::to_string(x1) + ", " + std::to_string(y1) + ", " + std::to_string(x2) + ", " + std::to_string(y2) + "]);");
 
   return name;
 }
@@ -236,12 +241,11 @@ blockPortMapping STLdriver::createExpression(MathOperation * e,
     // Create block containing input port or constant values
 
     if (e->op == CONST) {
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = addConst(" + name + ", 'K', '" + e->value + "');");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = add_block('simulink/Sources/Constant', [" + name + " '/K']);");
+      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_IN, 'Value', '" + e->value + "');");
     } else if (e->op == PORT) {
       std::string portName = e->value;
-
       testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = add_block('simulink/Sources/In1', [" + name + " '/" + portName + "']);");
-
       requiredPorts[portName] = 1;
     }
 
@@ -356,7 +360,8 @@ std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
   testBlockAppendLn(SRC_INFO_TEMP, name + "_FFSR = add_block('simulink_extras/Flip Flops/S-R Flip-Flop', [" + name + " '/FFSR']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FFSR, 'position',[200, 60, 220, 80]);");
 
-  testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = addConst(" + name + ", 'FALSE', '0');");
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = add_block('simulink/Sources/Constant', [" + name + " '/FALSE']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'Value', '0');");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'position',[140, 100, 160, 120]);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'OutDataTypeStr', 'boolean');");
 
@@ -461,11 +466,13 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
       testBlockAppendLn(SRC_INFO_TEMP, name + "_FALL = add_block('simulink/Logic and Bit Operations/Detect Decrease', [" + name + " '/FALL_EDGE']);");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALL, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_TRUE = addConst(" + name + ", 'TRUE', '1');");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_TRUE = add_block('simulink/Sources/Constant', [" + name + " '/TRUE']);");
+      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'Value', '1');");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 100, " + std::to_string(position_X_EXP[1])+ ", 120]);");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'OutDataTypeStr', 'boolean');");
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = addConst(" + name + ", 'FALSE', '0');");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = add_block('simulink/Sources/Constant', [" + name + " '/FALSE']);");
+      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'Value', '0');");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 140, " + std::to_string(position_X_EXP[1])+ ", 160]);");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'OutDataTypeStr', 'boolean');");
 
