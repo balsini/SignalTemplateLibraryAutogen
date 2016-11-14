@@ -33,56 +33,13 @@ STLdriver::STLdriver(const std::string &path) :
     throw "Error opening AUTOGEN_testBlockRouting.m";
 }
 
-/*
-void cleanMathematicalOperation(MathOperation *l)
-{
-  if (l->a)
-    cleanMathematicalOperation(l->a);
-  if (l->b)
-    cleanMathematicalOperation(l->b);
-  delete l;
-}
-
-void cleanComparisonOperation(ComparisonOperation *l)
-{
-  if (l->a)
-    cleanMathematicalOperation(l->a);
-  if (l->b)
-    cleanMathematicalOperation(l->b);
-  delete l;
-}
-
-void cleanLogicalOperation(LogicalOperation *l)
-{
-  if (l->a)
-    cleanLogicalOperation(l->a);
-  if (l->b)
-    cleanLogicalOperation(l->b);
-  if (l->value)
-    cleanComparisonOperation(l->value);
-  if (l->arg1)
-    cleanMathematicalOperation(l->arg1);
-  if (l->arg2)
-    cleanMathematicalOperation(l->arg2);
-  delete l;
-}
-
-void STLdriver::cleanTree()
-{
-  for (auto f: STLFormulas) {
-    if (std::get<2>(f))
-      cleanLogicalOperation(std::get<2>(f));
-    if (std::get<3>(f))
-      cleanLogicalOperation(std::get<3>(f));
-  }
-}
-*/
 STLdriver::~STLdriver()
 {
   testBlockAppendFile.close();
   testBlockRoutingAppendFile.close();
 
-  //cleanTree();
+  for (auto n : nodes)
+    delete n;
 }
 
 int STLdriver::parse(const std::string &f)
@@ -506,7 +463,7 @@ std::string STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, co
 
   return name;
 }
-
+/*
 std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::string parent)
 {
   // Create empty container
@@ -587,7 +544,7 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
 
   return name;
 }
-
+*/
 void STLdriver::createSTLFormulas()
 {
   unsigned int counter = 0;
@@ -878,5 +835,4 @@ void STLdriver::parsePorts()
 void STLdriver::addSTLFormula(TreeNode *f)
 {
   nodes.push_back(f);
-  //STLFormulas.push_back(f);
 }

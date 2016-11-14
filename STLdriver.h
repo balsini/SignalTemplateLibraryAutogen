@@ -98,11 +98,12 @@ public:
   void error(const std::string& m);
 
   void addSTLFormula(TreeNode *f);
-
+/*
   void createSTLFormula(const TemporalOperator &tOp,
                      const TimeInterval &tIn,
                      LogicalOperation *l,
                      LogicalOperation *u = nullptr); // Used for UNTIL
+                     */
   void createSTLFormulas();
 
   blockPortMapping createSTLFormulaBody(LogicalOperation *l,
@@ -110,8 +111,10 @@ public:
                                         unsigned int y = 0);
   std::string createSTLFormulaTimeInterval(const TimeInterval &time,
                                     const std::string &parent);
+  /*
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);
+                                        */
   std::string createSTLFormulaUntil(const std::string &parent);
   void createDiffBlock(std::string v);
   blockPortMapping createExpression(MathOperation * e,

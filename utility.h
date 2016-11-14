@@ -35,7 +35,7 @@ enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
 enum LogicalOperator { AND, OR, NOT, COMPARISON, ISSTEP };
 enum MathOperator { SUM, SUB, MUL, DIV, CONST, PORT };
-enum TemporalOperator { ALWAYS, EVENTUALLY };
+//enum TemporalOperator { ALWAYS, EVENTUALLY };
 
 struct MathOperation {
   MathOperator op;
@@ -71,7 +71,10 @@ public:
   TreeNode() : left(nullptr), right(nullptr) {}
   ~TreeNode() {
     delete left;
+    left = nullptr;
+
     delete right;
+    right = nullptr;
   }
   virtual void generate() {
     std::cout << "ERROR: code generation not yet implemented in the child node" << std::endl;
@@ -85,29 +88,105 @@ class BoolExpr : public STLFormula {
 };
 
 class STLFormulaNOT : public STLFormula {
+public:
+  STLFormulaNOT(STLFormula *f) {
+    std::cout << "--|--|--|--|--|--) Found  STLFormulaNOT" << std::endl;
+    left = f;
+  }
+  void generate() {
+    left->generate();
+    std::cout << "TODO - Generating STLFormulaNOT" << std::endl;
+  }
 };
 
 class STLFormulaAND : public STLFormula {
+public:
+  STLFormulaAND(STLFormula *f1, STLFormula *f2) {
+    std::cout << "--|--|--|--|--|--) Found  STLFormulaAND" << std::endl;
+    left = f1;
+    right = f2;
+  }
+  void generate() {
+    left->generate();
+    right->generate();
+    std::cout << "TODO - Generating STLFormulaAND" << std::endl;
+  }
 };
 
 class STLAlways : public STLFormula {
-  TemporalOperator tOp;
-  TimeInterval t;
+  TimeInterval _t;
+  bool _tSet;
+public:
+  STLAlways(const TimeInterval &t, STLFormula *f)
+    : _t(t), _tSet(true) {
+    std::cout << "--|--|--|--|--|--) Found Timed STLAlways" << std::endl;
+    left = f;
+  }
+  STLAlways(STLFormula *f) : _tSet(false){
+    std::cout << "--|--|--|--|--|--|--) Found STLAlways ";
+    left = f;
+  }
+  void generate() {
+    left->generate();
+    if (_tSet)
+      std::cout << "TODO - Generating Timed STLAlways" << std::endl;
+    else
+      std::cout << "TODO - Generating STLAlways" << std::endl;
+  }
 };
 
 class STLEventually : public STLFormula {
-  TemporalOperator tOp;
-  TimeInterval t;
+  TimeInterval _t;
+  bool _tSet;
+public:
+  STLEventually(const TimeInterval &t, STLFormula *f)
+    : _t(t), _tSet(true) {
+    std::cout << "--|--|--|--|--|--) Found Timed STLEventually" << std::endl;
+    left = f;
+  }
+  STLEventually(STLFormula *f) : _tSet(false){
+    std::cout << "--|--|--|--|--|--|--) Found STLEventually ";
+    left = f;
+  }
+  void generate() {
+    left->generate();
+    if (_tSet)
+      std::cout << "TODO - Generating Timed STLEventually" << std::endl;
+    else
+      std::cout << "TODO - Generating STLEventually" << std::endl;
+  }
 };
 
 class STLFormulaUNTIL : public STLFormula {
+  TimeInterval _t;
+  bool _tSet;
+public:
+  STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2)
+    : _t(t), _tSet(true) {
+    std::cout << "--|--|--|--|--|--) Found Timed STLFormulaUNTIL" << std::endl;
+    left = f1;
+    right = f2;
+  }
+  STLFormulaUNTIL(STLFormula *f1, STLFormula *f2) : _tSet(false){
+    std::cout << "--|--|--|--|--|--|--) Found STLFormulaUNTIL " << std::endl;
+    left = f1;
+    right = f2;
+  }
+  void generate() {
+    left->generate();
+    right->generate();
+    if (_tSet)
+      std::cout << "TODO - Generating Timed STLFormulaUNTIL" << std::endl;
+    else
+      std::cout << "TODO - Generating STLFormulaUNTIL" << std::endl;
+  }
 };
 
 class Expression : public TreeNode {
   MathOperator _op;
   std::string _value;
 public:
-  Expression(MathOperator op, Expression *e1 = nullptr, Expression *e2 = nullptr)
+  Expression(MathOperator op, Expression *e1, Expression *e2)
     : _op(op) {
     std::cout << "--|--|--|--|--|--) Found mathematical expression" << std::endl;
     left = e1;
@@ -122,14 +201,14 @@ public:
     std::cout << value << "]" << std::endl;
   }
   void generate() {
-    std::cout << "TODO - Generating Expression" << std::endl;
-
     if (_op == CONST || _op == PORT) {
       // TODO
     } else {
       left->generate();
       right->generate();
     }
+
+    std::cout << "TODO - Generating Expression" << std::endl;
   }
 };
 
@@ -140,15 +219,15 @@ class BooleanExpression : public STLFormula {
 
 class BooleanOperation : public BooleanExpression {
 public:
-  BooleanOperation(LogicalOperator op, BooleanExpression *b1 = nullptr, BooleanExpression *b2 = nullptr) {
+  BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2) {
     std::cout << "--|--|--|--) Found boolean operation" << std::endl;
     left = b1;
     right = b2;
   }
   void generate() {
-    std::cout << "TODO - Generating BooleanOperation" << std::endl;
     left->generate();
     right->generate();
+    std::cout << "TODO - Generating BooleanOperation" << std::endl;
   }
 };
 
@@ -161,28 +240,24 @@ public:
     right = e2;
   }
   void generate() {
-    std::cout << "TODO - Generating ComparisonExpression" << std::endl;
     left->generate();
     right->generate();
+    std::cout << "TODO - Generating ComparisonExpression" << std::endl;
   }
 };
 
-class BooleanFunction : public BooleanExpression {
-public:
-  BooleanFunction() {}
-  BooleanFunction(const std::string &name) {
-    std::cout << "--|--|--|--|--|--|--) Found boolean function [";
-    std::cout << name;
-    std::cout << "]" << std::endl;
-  }
-};
+class BooleanFunction : public BooleanExpression {};
 
 class isStepFunction : public BooleanFunction {
 public:
   isStepFunction(Expression *e1, Expression *e2) {
     std::cout << "--|--|--|--|--|--|--) Found isStep" << std::endl;
+    left = e1;
+    right = e2;
   }
   void generate() {
+    left->generate();
+    right->generate();
     std::cout << "TODO - Generating isStepFunction" << std::endl;
   }
 };

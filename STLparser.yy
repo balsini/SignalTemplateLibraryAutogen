@@ -30,7 +30,6 @@
 END  0      "end of file"
 BODYSTART   "%%"
 ASSIGN      "="
-INFINITY    "infty"
 COMMA       ","
 SEMICOLON   ";"
 ;
@@ -61,6 +60,7 @@ RSPAREN     "]"
 %token
 ALWAYS      "[]"
 EVENTUALLY  "<>"
+UNDERSCORE  "_"
 UNTIL       "U"
 ;
 
@@ -93,6 +93,7 @@ FALSE       "FALSE"
 
 %type  <std::string>            exp
 %type  <std::string>            exp2
+
 %type  <Expression *>           expWP
 %type  <Expression *>           expWP1
 %type  <Expression *>           expWP2
@@ -102,10 +103,11 @@ FALSE       "FALSE"
 %type  <LogicalOperator>        boolOp
 %type  <ComparisonOperator>     cmpOp
 %type  <std::string>            assignment
-%type  <std::string>            assignments
 %type  <STLFormula *>           STLFormula
+%type  <STLFormula *>           STLAlways
+%type  <STLFormula *>           STLEventually
+%type  <STLFormula *>           STLUntil
 %type  <TimeInterval>           time_range
-%type  <TemporalOperator>       temporalOperator
 %type  <std::string>            lparen
 %type  <std::string>            rparen
 
@@ -156,24 +158,17 @@ header:
 ;
 
 header_line:
-assignments   SEMICOLON
-;
-
-assignments:
-assignments assignment  {
-    $$ = $1 + $2;
-}
-| assignment            {
-    $$ = $1;
-}
+assignment   SEMICOLON
 ;
 
 assignment:
 VAR "=" exp             {
-    $$ = $1 + " = " + $3; driver.setVariable($1, $3);
+    $$ = $1;
+    driver.setVariable($1, $3);
 }
 | VAR "=" assignment    {
-    $$ = $1 + " = " + $3; driver.setVariable($1, $3);
+    $$ = $1 + " = " + $3;
+    driver.setVariable($1, driver.getVariable($3));
 }
 ;
 
@@ -234,42 +229,50 @@ STLFormula   SEMICOLON  {
 ;
 
 STLFormula:
-BoolExpr                {
+BoolExpr                    {
     $$ = $1;
 }
-| STLFormula AND STLFormula
-| STLAlways
-| STLEventually
-//| STLUntil
-//| NOT STLFormula
-/*
-temporalOperator time_range "(" BoolExpr ")" {
-  foundMainTimeRange($2);
-  driver.addSTLFormula($1, $2, $4);
+| STLAlways                 {
+    $$ = $1;
 }
-| temporalOperator time_range "(" BoolExpr UNTIL BoolExpr ")" {
-  foundUntil();
-  foundMainTimeRange($2);
-  driver.addSTLFormula($1, $2, $4, $6);
+| STLEventually             {
+    $$ = $1;
 }
-*/
+| STLUntil                  {
+    $$ = $1;
+}
+| STLFormula AND STLFormula {
+    $$ = new STLFormulaAND($1, $3);
+}
+| NOT STLFormula            {
+    $$ = new STLFormulaNOT($2);
+}
 ;
 
 STLAlways:
-ALWAYS STLFormula                   {
-
+ALWAYS time_range STLFormula       {
+    $$ = new STLAlways($2, $3);
 }
-| ALWAYS time_range STLFormula      {
-
+| ALWAYS STLFormula                 {
+    $$ = new STLAlways($2);
 }
 ;
 
 STLEventually:
-EVENTUALLY STLFormula               {
-
+EVENTUALLY time_range STLFormula    {
+    $$ = new STLEventually($2, $3);
 }
-| EVENTUALLY time_range STLFormula  {
+| EVENTUALLY STLFormula             {
+    $$ = new STLEventually($2);
+}
+;
 
+STLUntil:
+STLFormula UNTIL time_range STLFormula    {
+    $$ = new STLFormulaUNTIL($3, $1, $4);
+}
+| STLFormula UNTIL STLFormula             {
+    $$ = new STLFormulaUNTIL($1, $3);
 }
 ;
 
@@ -385,15 +388,9 @@ FNUM    {
 }
 ;
 
-//function:
-//  DIFF "(" exp ")" {
-//    driver.createDiffBlock($3);
-//  }
-//;
-
 time_range:
-lparen exp "," exp rparen   {
-    $$ = TimeInterval($2, $1, $4, $5);
+"_" lparen exp "," exp rparen   {
+    $$ = TimeInterval($3, $2, $5, $6);
 }
 ;
 
@@ -414,6 +411,12 @@ RRPAREN     {
     $$ = "]";
 }
 ;
+
+//function:
+//  DIFF "(" exp ")" {
+//    driver.createDiffBlock($3);
+//  }
+//;
 
 /*
  * *************************** FOOTER ***************************
