@@ -53,8 +53,8 @@ min = stepSize - range;
 
 
 //TRUE && 1 < 2 + 3 * 4;
-//SIGA < 100;
+SIGA < 100 * 2;
 //isStep(1,2);
 
 
-[]_[0 , T] TRUE;
+//[]_[0 , T] TRUE;

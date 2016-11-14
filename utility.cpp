@@ -7,10 +7,31 @@ const unsigned int position_X_EXP[2] = {80, 150};
 const unsigned int position_X_OP[2] = {190, 210};
 const unsigned int position_X_OUT[2] = {240, 260};
 
+const unsigned int portOffset = 40;
+
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj)
 {
   os << obj.start << obj.end;
   return os;
+}
+
+void updateRequiredPorts(STLdriver *d, const std::string name, portMapping &bpm, const blockPortMapping &A, unsigned int &portId)
+{
+  for (auto pm : std::get<1>(A)) {
+    portMapping::iterator it = bpm.find(pm.first);
+    if (it == bpm.end()) {
+      // Port needs to be created
+
+      d->testBlockAppendLn(SRC_INFO_TEMP, name + pm.first + " = add_block('simulink/Sources/In1', [" + name + " '/" + pm.first + "']);");
+      d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
+
+      bpm[pm.first] = portId;
+      portId++;
+    }
+
+    // And line generated
+    d->createLine(SRC_INFO, name + pm.first, std::get<0>(A), name, 1, pm.second);
+  }
 }
 
 BooleanValue::BooleanValue(bool v) :
@@ -26,35 +47,37 @@ BooleanValue::BooleanValue(bool v) :
 
 blockPortMapping BooleanValue::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
   unsigned int y = 40 * vpos + 20;
 
-  std::cerr << "TODO - Generating BooleanValue [";
+  std::cout << "Generating BooleanValue [";
   if (_v)
-    std::cerr << "TRUE";
+    std::cout << "TRUE";
   else
-    std::cerr << "FALSE";
-  std::cerr << "]" << std::endl;
+    std::cout << "FALSE";
+  std::cout << "]" << std::endl;
 
   // Create empty container
   std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
 
+  // Create OUT port
   d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
 
+  // Create boolean value
   d->testBlockAppendLn(SRC_INFO_TEMP, name + "_B = add_block('simulink/Sources/Constant', [" + name + " '/TRUE']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'OutDataTypeStr', 'boolean');");
-
   if (_v) {
     d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'Value', '1');");
   } else {
     d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'Value', '0');");
   }
 
+  // Link blocks
   d->createLine(SRC_INFO, name + "_B", name + "_OUT", name);
 
-  return bpm;
+  return std::make_tuple(name, bpm);
 }
 
 isStepFunction::isStepFunction(Expression *e1, Expression *e2)
@@ -85,13 +108,62 @@ ComparisonExpression::ComparisonExpression(ComparisonOperator op, Expression *e1
 
 blockPortMapping ComparisonExpression::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
-  right->generate(d, parent, 1);
-  std::cerr << "TODO - Generating ComparisonExpression" << std::endl;
+  std::cout << "Generating ComparisonExpression" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  std::string relOp;
+  switch (_op) {
+    case GEQ:
+      relOp = ">=";
+      break;
+    case LEQ:
+      relOp = "<=";
+      break;
+    case GREATER:
+      relOp = ">";
+      break;
+    case SMALLER:
+      relOp = "<";
+      break;
+    case EQUAL:
+      relOp = "==";
+      break;
+    case NEQUAL:
+      relOp = "~=";
+      break;
+    default: break;
+  }
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + name + " '/OP']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'Operator', '" + relOp + "');");
+
+  blockPortMapping A = left->generate(d, name, 0);
+  blockPortMapping B = right->generate(d, name, 1);
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+  d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name, 1, 1);
+  d->createLine(SRC_INFO, std::get<0>(B), name + "_OP", name, 1, 2);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+  updateRequiredPorts(d, name, bpm, B, portId);
+
+  return std::make_tuple(name, bpm);
 }
 
 BooleanOperation::BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2)
@@ -132,19 +204,94 @@ Expression::Expression(MathOperator op, std::string value) :
   std::cout << value << "]" << std::endl;
 }
 
-blockPortMapping Expression::generate(STLdriver *d, const std::string &parent, int vpos) {
-  blockPortMapping bpm;
+/**
+ * @brief Creates a block containing the expression.
+ * This is a recursive function that explores the expression tree,
+ * where the leaves nodes are constant values or ports and the other
+ * nodes are operation performed on child nodes.
+ *
+ * In order, this function:
+ * 1) Creates an empty container and its exit port. This container
+ * represents the actual expression.
+ * 2) In case of leaf node if fills the container with a constant value
+ * or input port, otherwise it creates the mathematical operator and performs
+ * a recursive call in order to create the expressions subtrees.
+ */
+blockPortMapping Expression::generate(STLdriver *d, const std::string &parent, int vpos)
+{
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
+
+  std::cout << "Generating Expression" << std::endl;
+
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
 
   if (_op == CONST || _op == PORT) {
-    // TODO
+
+    if (_op == CONST) {
+      d->testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = add_block('simulink/Sources/Constant', [" + name + " '/K']);");
+      d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_IN, 'Value', '" + _value + "');");
+    } else if (_op == PORT) {
+      d->testBlockAppendLn(SRC_INFO_TEMP, name + "_IN = add_block('simulink/Sources/In1', [" + name + " '/" + _value + "']);");
+      bpm[_value] = 1;
+    }
+
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_IN,'position', [" + std::to_string(position_X_IN[0]) + ", 20, " + std::to_string(position_X_IN[1]) + ", 40]);");
+
+    d->createLine(SRC_INFO, name + "_IN", name + "_OUT", name);
+
   } else {
-    left->generate(d, parent, 0);
-    right->generate(d, parent, 1);
+
+    std::string matOp;
+    switch (_op) {
+      case SUM:
+        matOp = "Add";
+        break;
+      case SUB:
+        matOp = "Subtract";
+        break;
+      case MUL:
+        matOp = "Product";
+        break;
+      case DIV:
+        matOp = "Divide";
+        break;
+      default: break;
+    }
+
+    d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Math Operations/" + matOp + "', [" + name + " '/OP']);");
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 40]);");
+
+    ///////////////////////////
+    /// Generate expressions //
+    ///////////////////////////
+
+    blockPortMapping A = left->generate(d, name, 0);
+    blockPortMapping B = right->generate(d, name, 1);
+
+    /////////////////////////////////////
+    /// Create output port connections //
+    /////////////////////////////////////
+
+    d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
+    d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name);
+    d->createLine(SRC_INFO, std::get<0>(B), name + "_OP", name, 1, 2);
+
+    /////////////////////////
+    /// Create input ports //
+    /////////////////////////
+
+    unsigned int portId = 1;
+    updateRequiredPorts(d, name, bpm, A, portId);
+    updateRequiredPorts(d, name, bpm, B, portId);
   }
 
-  std::cerr << "TODO - Generating Expression" << std::endl;
-
-  return bpm;
+  return std::make_tuple(name, bpm);
 }
 
 STLFormulaUNTIL::STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2) :

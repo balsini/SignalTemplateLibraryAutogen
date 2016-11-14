@@ -101,9 +101,6 @@ public:
                                         */
   std::string createSTLFormulaUntil(const std::string &parent);
   void createDiffBlock(std::string v);
-  blockPortMapping createExpression(MathOperation * e,
-                                    std::string parent,
-                                    unsigned int vpos = 0);
 
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,
