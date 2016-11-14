@@ -40,6 +40,8 @@ blank [ \t]
 {blank}+   loc.step();
 [\n]+      loc.lines(yyleng); loc.step();
 
+"%%"  return yy::STLparser::make_BODYSTART(loc);
+
 "infty" return yy::STLparser::make_INFINITY(loc);
 
 "="   return yy::STLparser::make_ASSIGN(loc);
@@ -74,6 +76,9 @@ blank [ \t]
 "[]"  return yy::STLparser::make_ALWAYS(loc);
 "<>"  return yy::STLparser::make_EVENTUALLY(loc);
 "U"   return yy::STLparser::make_UNTIL(loc);
+
+"TRUE"   return yy::STLparser::make_TRUE(loc);
+"FALSE"   return yy::STLparser::make_FALSE(loc);
 
 "//".*    {
   /* Single line comment */

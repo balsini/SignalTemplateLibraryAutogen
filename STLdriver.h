@@ -31,7 +31,7 @@ class STLdriver
   std::map<std::string, std::string> variablesValues;
   std::list<std::string> ports;
 
-  std::list<std::tuple<TemporalOperator, TimeInterval, LogicalOperation *, LogicalOperation *> > STLFormulas;
+  std::list<TreeNode *> nodes;
 
   bool REF_input;
   bool SIG_input;
@@ -97,7 +97,9 @@ public:
   void error(const yy::location& l, const std::string& m);
   void error(const std::string& m);
 
-  void addSTLFormula(const TemporalOperator &tOp,
+  void addSTLFormula(TreeNode *f);
+
+  void createSTLFormula(const TemporalOperator &tOp,
                      const TimeInterval &tIn,
                      LogicalOperation *l,
                      LogicalOperation *u = nullptr); // Used for UNTIL

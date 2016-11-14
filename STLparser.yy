@@ -9,15 +9,15 @@
 {
 #include <string>
 #include <utility.h>
-  class STLdriver;
+    class STLdriver;
 }
 // The parsing context.
 %param { STLdriver &driver }
 %locations
 %initial-action
 {
-  // Initialize the initial location.
-  @$.begin.filename = @$.end.filename = &driver.file;
+    // Initialize the initial location.
+    @$.begin.filename = @$.end.filename = &driver.file;
 };
 %define parse.trace
 %define parse.error verbose
@@ -27,32 +27,35 @@
 }
 %define api.token.prefix {TOK_}
 %token
-END  0    "end of file"
-ASSIGN    "="
-INFINITY  "infty"
-COMMA     ","
-SEMICOLON ";"
+END  0      "end of file"
+BODYSTART   "%%"
+ASSIGN      "="
+INFINITY    "infty"
+COMMA       ","
+SEMICOLON   ";"
 ;
 
 %token
-MINUS     "-"
-PLUS      "+"
-STAR      "*"
-SLASH     "/"
+MINUS       "-"
+PLUS        "+"
+STAR        "*"
+SLASH       "/"
 ;
 
 %token
-AND       "&&"
-OR        "||"
+AND         "&&"
+OR          "||"
 ;
 
-%token    NOT "<!> (to be implemented)"
+%token
+NOT "<!> (to be implemented)"
+;
 
 %token
-LRPAREN   "("
-RRPAREN   ")"
-LSPAREN   "["
-RSPAREN   "]"
+LRPAREN     "("
+RRPAREN     ")"
+LSPAREN     "["
+RSPAREN     "]"
 ;
 
 %token
@@ -62,45 +65,49 @@ UNTIL       "U"
 ;
 
 %token
-GEQ       ">="
-LEQ       "<="
-GREATER   ">"
-SMALLER   "<"
-EQUAL     "=="
-NEQUAL    "!="
+GEQ         ">="
+LEQ         "<="
+GREATER     ">"
+SMALLER     "<"
+EQUAL       "=="
+NEQUAL      "!="
 ;
 
 %token
 ISSTEP      "isStep"
 DIFF        "diff"
+TRUE        "TRUE"
+FALSE       "FALSE"
 ;
-
-%token <std::string>  VAR   "identifier"
-%token <std::string>  INUM  "integer number"
-%token <std::string>  FNUM  "floating point number"
-
-%type  <std::string>  exp
-%type  <std::string>  exp2
-%type  <MathOperation *>  expWP
-%type  <MathOperation *>  expWP1
-%type  <MathOperation *>  expWP2
-%type  <MathOperation *>  expWP3
-%type  <ComparisonOperation *>  cmp
-%type  <LogicalOperation *>  boolExp
-%type  <LogicalOperator>  boolOp
-%type  <ComparisonOperator> cmpOp
-%type  <std::string>  assignment
-%type  <std::string>  assignments
-%type  <std::string>  STLFormula
-%type  <TimeInterval> time_range
-%type  <TemporalOperator> temporalOperator
-%type  <Border>       lparen
-%type  <Border>       rparen
 
 %left "&&" "||";
 %left "!"
 %left "+" "-";
 %left "*" "/";
+
+
+
+%token <std::string>            VAR   "identifier"
+%token <std::string>            INUM  "integer number"
+%token <std::string>            FNUM  "floating point number"
+
+%type  <std::string>            exp
+%type  <std::string>            exp2
+%type  <Expression *>           expWP
+%type  <Expression *>           expWP1
+%type  <Expression *>           expWP2
+%type  <Expression *>           expWP3
+%type  <ComparisonExpression *> cmp
+%type  <BooleanExpression *>    BoolExpr
+%type  <LogicalOperator>        boolOp
+%type  <ComparisonOperator>     cmpOp
+%type  <std::string>            assignment
+%type  <std::string>            assignments
+%type  <STLFormula *>           STLFormula
+%type  <TimeInterval>           time_range
+%type  <TemporalOperator>       temporalOperator
+%type  <std::string>            lparen
+%type  <std::string>            rparen
 
 %printer { yyoutput << $$; } <*>;
 
@@ -111,32 +118,37 @@ DIFF        "diff"
  *   * Language structure *
  *   **********************
  *
- * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLForall | STLEventually
- * STLForall : [] {TIME} STLFormula
+ * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLAlways | STLEventually
+ * STLAlways : [] {TIME} STLFormula
  * STLEventually : <> {TIME} STLFormula
  * STLUntil : STLFormula U {TIME} STLFormula
  *
- * Expr : VAL [+,*,-,/] VAL
+ * Expr : VAL [+ | * | - | /] VAL
  * CmpExpr : Expr [>= | < | ...] Expr
- * BoolExpr : CmpExpr | boolFunction | TRUE | FALSE
+ * BoolExpr : CmpExpr | BoolExpr [&& | ||] BoolExpr | boolFunction | TRUE | FALSE
  *
  */
 
 parser:
 header  {
-  std::cout << "## Header DONE ##" << std::endl;
-  driver.printConstantValues();
-  driver.setStatus(BODY);
+    std::cout << "## Header DONE ##" << std::endl;
+    driver.printConstantValues();
+    driver.setStatus(BODY);
 }
+BODYSTART
 body    {
-  std::cout << "## Body DONE ##" << std::endl;
-  driver.createSTLFormulas();
-  driver.setStatus(FOOTER);
+    std::cout << "## Body DONE ##" << std::endl;
+    driver.createSTLFormulas();
+    driver.setStatus(FOOTER);
 }
 footer  {
-  std::cout << "## Footer DONE ##" << std::endl;
+    std::cout << "## Footer DONE ##" << std::endl;
 }
 ;
+
+/*
+ * *************************** HEADER ***************************
+ */
 
 header:
 %empty
@@ -147,193 +159,229 @@ header_line:
 assignments   SEMICOLON
 ;
 
+assignments:
+assignments assignment  {
+    $$ = $1 + $2;
+}
+| assignment            {
+    $$ = $1;
+}
+;
+
+assignment:
+VAR "=" exp             {
+    $$ = $1 + " = " + $3; driver.setVariable($1, $3);
+}
+| VAR "=" assignment    {
+    $$ = $1 + " = " + $3; driver.setVariable($1, $3);
+}
+;
+
+exp:
+"(" exp ")"     {
+    $$ = "(" + $2 + ")";
+}
+| exp "+" exp   {
+    $$ = $1 + "+" + $3;
+}
+| exp "-" exp   {
+    $$ = $1 + "-" + $3;
+}
+| exp2          {
+    $$ = $1;
+}
+;
+
+exp2:
+exp "*" exp     {
+    $$ = $1 + "*" + $3;
+}
+| exp "/" exp   {
+    $$ = $1 + "/" + $3;
+}
+| FNUM          {
+    $$ = $1;
+}
+| INUM          {
+    $$ = $1;
+}
+| VAR           {
+    if (driver.portExists($1)) {
+        error (yyla.location, "variable named <" + $1 + "> already defined in model");
+        YYABORT;
+    }
+    if (!driver.variableExists($1)) {
+        error (yyla.location, "undefined variable <" + $1 + ">");
+        YYABORT;
+    }
+    $$ = "(" + driver.getVariable($1) + ")";
+}
+;
+
+/*
+ * *************************** BODY ***************************
+ */
+
 body:
 %empty
 | body body_line
 ;
 
 body_line:
-STLFormula   SEMICOLON
-;
-
-assignments:
-assignments assignment  { $$ = $1 + $2; }
-| assignment              { $$ = $1; }
-;
-
-assignment:
-VAR "=" exp         { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
-| VAR "=" assignment  { $$ = $1 + " = " + $3; driver.setVariable($1, $3); }
+STLFormula   SEMICOLON  {
+    driver.addSTLFormula($1);
+}
 ;
 
 STLFormula:
-temporalOperator time_range "(" boolExp ")" {
+BoolExpr                {
+    $$ = $1;
+}
+| STLFormula AND STLFormula
+| STLAlways
+| STLEventually
+//| STLUntil
+//| NOT STLFormula
+/*
+temporalOperator time_range "(" BoolExpr ")" {
   foundMainTimeRange($2);
   driver.addSTLFormula($1, $2, $4);
 }
-| temporalOperator time_range "(" boolExp UNTIL boolExp ")" {
+| temporalOperator time_range "(" BoolExpr UNTIL BoolExpr ")" {
   foundUntil();
   foundMainTimeRange($2);
   driver.addSTLFormula($1, $2, $4, $6);
 }
+*/
 ;
 
-temporalOperator:
-ALWAYS {
-    $$ = ALWAYS;
-}
-| EVENTUALLY {
-    $$ = EVENTUALLY;
-};
+STLAlways:
+ALWAYS STLFormula                   {
 
-boolExp:
-"(" boolExp ")" {
-  $$ = $2;
 }
-| boolExp boolOp boolExp  {
-  $$ = driver.createLogicalBlock($2, $1, $3);
+| ALWAYS time_range STLFormula      {
+
 }
-| boolExp AND temporalOperator time_range boolExp  {
-  $$ = driver.createLogicalBlock(AND, $1, $5);
-  std::cout << "--------------------------->Found relative time range" << std::endl;
+;
+
+STLEventually:
+EVENTUALLY STLFormula               {
+
 }
-| cmp                   {
-  $$ = driver.createLogicalBlock(COMPARISON);
-  $$->value = $1;
-  //driver.appendln("cmp");
+| EVENTUALLY time_range STLFormula  {
+
 }
-//| NOT "(" cmp ")"             {
-  //$$ = driver.createComparisonExpressionBlock(NOT, $3);
-//}
-| ISSTEP "(" expWP COMMA expWP ")" {
-  std::cout << "----------------> Found isStep()" << std::endl;
-  $$ = driver.createLogicalBlock(ISSTEP);
-  $$->arg1 = $3;
-  $$->arg2 = $5;
+;
+
+BoolExpr:
+"(" BoolExpr ")"                                    {
+    $$ = $2;
+}
+| BoolExpr boolOp BoolExpr                          {
+    $$ = new BooleanOperation($2, $1, $3);
+}
+| cmp                                               {
+    $$ = $1;
+}
+| ISSTEP "(" expWP COMMA expWP ")"                  {
+    $$ = new isStepFunction($3, $5);
+}
+| TRUE                                              {
+    $$ = new BooleanValue(true);
+}
+| FALSE                                             {
+    $$ = new BooleanValue(false);
 }
 ;
 
 cmp:
-"(" cmp ")" {
-  $$ = $2;
+"(" cmp ")"         {
+    $$ = $2;
 }
-| expWP cmpOp expWP   {
-  $$ = driver.createComparisonBlock($2, $1, $3);
+| expWP cmpOp expWP {
+    $$ = new ComparisonExpression($2, $1, $3);
 }
 ;
 
 boolOp:
-AND {
-  $$ = AND;
+AND     {
+    $$ = AND;
 }
-| OR  {
-  $$ = OR;
+| OR    {
+    $$ = OR;
 }
 ;
 
 cmpOp:
-">="  { $$ = GEQ; }
-| "<="  { $$ = LEQ; }
-| ">"   { $$ = GREATER; }
-| "<"   { $$ = SMALLER; }
-| "=="  { $$ = EQUAL; }
-| "!="  { $$ = NEQUAL; }
-;
-
-exp:
-"(" exp ")"   {
-  $$ = "(" + $2 + ")";
+GEQ         {
+    $$ = GEQ;
 }
-| exp "+" exp {
-  $$ = $1 + "+" + $3;
+| LEQ       {
+$$ = LEQ;
 }
-| exp "-" exp {
-  $$ = $1 + "-" + $3;
+| GREATER   {
+    $$ = GREATER;
 }
-| exp2 { $$ = $1; }
-;
-
-exp2:
-exp "*" exp {
-  $$ = $1 + "*" + $3;
+| SMALLER   {
+    $$ = SMALLER;
 }
-| exp "/" exp {
-  $$ = $1 + "/" + $3;
+| EQUAL     {
+    $$ = EQUAL;
 }
-| FNUM          {
-  $$ = $1;
-}
-| INUM          {
-  $$ = $1;
-}
-| VAR           {
-  if (driver.portExists($1)) {
-    error (yyla.location, "variable named <" + $1 + "> already defined in model");
-    YYABORT;
-  }
-  if (!driver.variableExists($1)) {
-    error (yyla.location, "undefined variable <" + $1 + ">");
-    YYABORT;
-  }
-  $$ = "(" + driver.getVariable($1) + ")";
+| NEQUAL    {
+    $$ = NEQUAL;
 }
 ;
 
 expWP:
-expWP1 {
-  $$ = $1;
+expWP1  {
+    $$ = $1;
 }
 ;
 
 expWP1: // Expressions plus external ports
-"(" expWP1 ")" {
-  $$ = $2;
+"(" expWP1 ")"      {
+    $$ = $2;
 }
 | expWP1 "+" expWP1 {
-  $$ = driver.createMathBlock(SUM, $1, $3);
+    $$ = new Expression(SUM, $1, $3);
 }
 | expWP1 "-" expWP1 {
-  $$ = driver.createMathBlock(SUB, $1, $3);
+    $$ = new Expression(SUB, $1, $3);
 }
-| expWP2 { $$ = $1; }
+| expWP2            {
+    $$ = $1;
+}
 ;
 
 expWP2: // Expressions plus external ports
-expWP1 "*" expWP1 {
-  $$ = driver.createMathBlock(MUL, $1, $3);
+expWP1 "*" expWP1   {
+    $$ = new Expression(MUL, $1, $3);
 }
 | expWP1 "/" expWP1 {
-  $$ = driver.createMathBlock(DIV, $1, $3);
+    $$ = new Expression(DIV, $1, $3);
 }
-| expWP3 {
-  $$ = $1;
+| expWP3            {
+    $$ = $1;
 }
 ;
 
 expWP3:
-FNUM          {
-  $$ = driver.createMathBlock(CONST);
-  $$->value = $1;
-  foundConstantBlock($1);
+FNUM    {
+    $$ = new Expression(CONST, $1);
 }
-| INUM          {
-  $$ = driver.createMathBlock(CONST);
-  $$->value = $1;
-  foundConstantBlock($1);
+| INUM  {
+    $$ = new Expression(CONST, $1);
 }
-| VAR           {
-  if (driver.variableExists($1)) {
-    $$ = driver.createMathBlock(CONST);
-    $$->value = driver.getVariable($1);
-    foundConstantBlock(driver.getVariable($1));
-  } else if (driver.portExists($1)) {
-    $$ = driver.createMathBlock(PORT);
-    $$->value = $1;
-    foundPortBlock($1);
-  } else {
-    error (yyla.location, "undefined variable or port <" + $1 + ">");
-    YYABORT;
-  }
+| VAR   {
+    if (driver.variableExists($1)) {
+        $$ = new Expression(CONST, driver.getVariable($1));
+    } else if (driver.portExists($1)) {
+        $$ = new Expression(PORT, $1);
+    } else {
+        error (yyla.location, "undefined variable or port <" + $1 + ">");
+        YYABORT;
+    }
 }
 ;
 
@@ -344,20 +392,32 @@ FNUM          {
 //;
 
 time_range:
-lparen exp "," exp rparen {
-  $$ = TimeInterval($2, $1, $4, $5);
+lparen exp "," exp rparen   {
+    $$ = TimeInterval($2, $1, $4, $5);
 }
 ;
 
 lparen:
-"(" { $$ = INTERVAL_OPEN; }
-| "[" { $$ = INTERVAL_CLOSED; }
+LRPAREN     {
+    $$ = "(";
+}
+| LSPAREN   {
+    $$ = "[";
+}
 ;
 
 rparen:
-")" { $$ = INTERVAL_OPEN; }
-| "]" { $$ = INTERVAL_CLOSED; }
+RRPAREN     {
+    $$ = ")";
+}
+| RSPAREN   {
+    $$ = "]";
+}
 ;
+
+/*
+ * *************************** FOOTER ***************************
+ */
 
 footer:
 END
@@ -367,5 +427,5 @@ END
 
 void yy::STLparser::error(const location_type& l, const std::string& m)
 {
-  driver.error(l, "ERROR: " + m);
+    driver.error(l, "ERROR: " + m);
 }

@@ -33,6 +33,7 @@ STLdriver::STLdriver(const std::string &path) :
     throw "Error opening AUTOGEN_testBlockRouting.m";
 }
 
+/*
 void cleanMathematicalOperation(MathOperation *l)
 {
   if (l->a)
@@ -75,13 +76,13 @@ void STLdriver::cleanTree()
       cleanLogicalOperation(std::get<3>(f));
   }
 }
-
+*/
 STLdriver::~STLdriver()
 {
   testBlockAppendFile.close();
   testBlockRoutingAppendFile.close();
 
-  cleanTree();
+  //cleanTree();
 }
 
 int STLdriver::parse(const std::string &f)
@@ -589,6 +590,13 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
 
 void STLdriver::createSTLFormulas()
 {
+  unsigned int counter = 0;
+  for (TreeNode * n : nodes) {
+    std::cout << std::endl << "Node " << counter++ << std::endl;
+    n->generate();
+  }
+
+  /*
   portMapping requiredPorts;
   unsigned int mainPortId = 1;
   unsigned int counter = 0;
@@ -706,6 +714,7 @@ void STLdriver::createSTLFormulas()
 
     counter++;
   }
+  */
 }
 
 blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, const std::string &parent, unsigned int vpos)
@@ -866,10 +875,8 @@ void STLdriver::parsePorts()
   systemPortsFile.close();
 }
 
-void STLdriver::addSTLFormula(const TemporalOperator &tOp,
-                              const TimeInterval &tIn,
-                              LogicalOperation *l,
-                              LogicalOperation *u)
+void STLdriver::addSTLFormula(TreeNode *f)
 {
-  STLFormulas.push_back(std::make_tuple(tOp, tIn, l, u));
+  nodes.push_back(f);
+  //STLFormulas.push_back(f);
 }

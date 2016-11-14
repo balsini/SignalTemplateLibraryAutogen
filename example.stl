@@ -26,7 +26,13 @@ min = stepSize - range;
 [] (0 , T] (SIG - REF < max);
 */
 
-[] [0 , T] (isStep(SIGA, stepSize) && SIGA - REFA < max);
+%%
+
+TRUE && 1 < 2 + 3 * 4;
+SIGA < 100;
+isStep(1,2);
+
+//[] [0 , T] (isStep(SIGA, stepSize) && SIGA - REFA < max);
 
 //[] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
 //[] (0 , T] (SIGA < 11 && SIGA >= 0);
@@ -37,3 +43,13 @@ min = stepSize - range;
 //[] [0 , 4] (SIGA < 20);
 //[] [0 , 4] (REFA < 5 U SIGA < 100 && REFA > 0 && REFA < 11);
 //[] [0 , 4] (REFA < 5 && <> [0,1] SIGA < 100);
+
+
+// STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLForall | STLEventually
+// STLForall : [] {TIME} STLFormula
+// STLEventually : <> {TIME} STLFormula
+// STLUntil : STLFormula U {TIME} STLFormula
+
+// Expr : VAL [+,*,-,/] VAL
+// CmpExpr : Expr [>= | < | ...] Expr
+// BoolExpr : CmpExpr | boolFunction | TRUE | FALSE
