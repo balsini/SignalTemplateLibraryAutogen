@@ -102,7 +102,7 @@ public:
     blockPortMapping bpm;
 
     left->generate();
-    std::cout << "TODO - Generating STLFormulaNOT" << std::endl;
+    std::cerr << "TODO - Generating STLFormulaNOT" << std::endl;
 
     return bpm;
   }
@@ -120,7 +120,7 @@ public:
 
     left->generate();
     right->generate();
-    std::cout << "TODO - Generating STLFormulaAND" << std::endl;
+    std::cerr << "TODO - Generating STLFormulaAND" << std::endl;
 
     return bpm;
   }
@@ -144,9 +144,9 @@ public:
 
     left->generate();
     if (_tSet)
-      std::cout << "TODO - Generating Timed STLAlways" << std::endl;
+      std::cerr << "TODO - Generating Timed STLAlways" << std::endl;
     else
-      std::cout << "TODO - Generating STLAlways" << std::endl;
+      std::cerr << "TODO - Generating STLAlways" << std::endl;
 
     return bpm;
   }
@@ -170,9 +170,9 @@ public:
 
     left->generate();
     if (_tSet)
-      std::cout << "TODO - Generating Timed STLEventually" << std::endl;
+      std::cerr << "TODO - Generating Timed STLEventually" << std::endl;
     else
-      std::cout << "TODO - Generating STLEventually" << std::endl;
+      std::cerr << "TODO - Generating STLEventually" << std::endl;
 
     return bpm;
   }
@@ -199,9 +199,9 @@ public:
     left->generate();
     right->generate();
     if (_tSet)
-      std::cout << "TODO - Generating Timed STLFormulaUNTIL" << std::endl;
+      std::cerr << "TODO - Generating Timed STLFormulaUNTIL" << std::endl;
     else
-      std::cout << "TODO - Generating STLFormulaUNTIL" << std::endl;
+      std::cerr << "TODO - Generating STLFormulaUNTIL" << std::endl;
 
     return bpm;
   }
@@ -235,7 +235,7 @@ public:
       right->generate();
     }
 
-    std::cout << "TODO - Generating Expression" << std::endl;
+    std::cerr << "TODO - Generating Expression" << std::endl;
 
     return bpm;
   }
@@ -258,7 +258,7 @@ public:
 
     left->generate();
     right->generate();
-    std::cout << "TODO - Generating BooleanOperation" << std::endl;
+    std::cerr << "TODO - Generating BooleanOperation" << std::endl;
 
     return bpm;
   }
@@ -277,7 +277,7 @@ public:
 
     left->generate();
     right->generate();
-    std::cout << "TODO - Generating ComparisonExpression" << std::endl;
+    std::cerr << "TODO - Generating ComparisonExpression" << std::endl;
 
     return bpm;
   }
@@ -297,7 +297,7 @@ public:
 
     left->generate();
     right->generate();
-    std::cout << "TODO - Generating isStepFunction" << std::endl;
+    std::cerr << "TODO - Generating isStepFunction" << std::endl;
 
     return bpm;
   }

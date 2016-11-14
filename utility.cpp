@@ -21,12 +21,12 @@ blockPortMapping BooleanValue::generate()
 {
   blockPortMapping bpm;
 
-  std::cout << "TODO - Generating BooleanValue [";
+  std::cerr << "TODO - Generating BooleanValue [";
   if (_v)
-    std::cout << "TRUE";
+    std::cerr << "TRUE";
   else
-    std::cout << "FALSE";
-  std::cout << "]" << std::endl;
+    std::cerr << "FALSE";
+  std::cerr << "]" << std::endl;
 
   return bpm;
 }
