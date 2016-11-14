@@ -3,9 +3,6 @@
 
 #include <algorithm>
 
-#define SRC_INFO_TEMP __FILE__, __func__, __LINE__
-#define SRC_INFO (std::make_tuple(__FILE__, __func__, __LINE__))
-
 const std::string ADD_LINE_AUTOROUTING = ", 'autorouting','on'";
 
 const unsigned int position_X_IN[2] = {20, 40};
@@ -550,7 +547,7 @@ void STLdriver::createSTLFormulas()
   unsigned int counter = 0;
   for (TreeNode * n : nodes) {
     std::cout << std::endl << "Node " << counter++ << std::endl;
-    n->generate();
+    n->generate(this, "ROOT", 0);
   }
 
   /*

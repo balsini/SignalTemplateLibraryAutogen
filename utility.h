@@ -4,9 +4,14 @@
 #include <iostream>
 #include <map>
 
+#define SRC_INFO_TEMP __FILE__, __func__, __LINE__
+#define SRC_INFO (std::make_tuple(__FILE__, __func__, __LINE__))
+
 typedef std::map<std::string, unsigned int> portMapping;
 typedef std::tuple<std::string, portMapping> blockPortMapping;
 typedef std::tuple<std::string, std::string, int> srcInfo;
+
+class STLdriver;
 
 class TimeInterval
 {
@@ -81,7 +86,7 @@ public:
     delete right;
     right = nullptr;
   }
-  virtual blockPortMapping generate() {
+  virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos) {
     std::cout << "ERROR: code generation not yet implemented in the child node" << std::endl;
   }
 };
@@ -94,151 +99,50 @@ class BoolExpr : public STLFormula {
 
 class STLFormulaNOT : public STLFormula {
 public:
-  STLFormulaNOT(STLFormula *f) {
-    std::cout << "--|--|--|--|--|--) Found  STLFormulaNOT" << std::endl;
-    left = f;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    std::cerr << "TODO - Generating STLFormulaNOT" << std::endl;
-
-    return bpm;
-  }
+  STLFormulaNOT(STLFormula *f);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class STLFormulaAND : public STLFormula {
 public:
-  STLFormulaAND(STLFormula *f1, STLFormula *f2) {
-    std::cout << "--|--|--|--|--|--) Found  STLFormulaAND" << std::endl;
-    left = f1;
-    right = f2;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    right->generate();
-    std::cerr << "TODO - Generating STLFormulaAND" << std::endl;
-
-    return bpm;
-  }
+  STLFormulaAND(STLFormula *f1, STLFormula *f2);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class STLAlways : public STLFormula {
   TimeInterval _t;
   bool _tSet;
 public:
-  STLAlways(const TimeInterval &t, STLFormula *f)
-    : _t(t), _tSet(true) {
-    std::cout << "--|--|--|--|--|--) Found Timed STLAlways" << std::endl;
-    left = f;
-  }
-  STLAlways(STLFormula *f) : _tSet(false){
-    std::cout << "--|--|--|--|--|--|--) Found STLAlways ";
-    left = f;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    if (_tSet)
-      std::cerr << "TODO - Generating Timed STLAlways" << std::endl;
-    else
-      std::cerr << "TODO - Generating STLAlways" << std::endl;
-
-    return bpm;
-  }
+  STLAlways(const TimeInterval &t, STLFormula *f);
+  STLAlways(STLFormula *f);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class STLEventually : public STLFormula {
   TimeInterval _t;
   bool _tSet;
 public:
-  STLEventually(const TimeInterval &t, STLFormula *f)
-    : _t(t), _tSet(true) {
-    std::cout << "--|--|--|--|--|--) Found Timed STLEventually" << std::endl;
-    left = f;
-  }
-  STLEventually(STLFormula *f) : _tSet(false){
-    std::cout << "--|--|--|--|--|--|--) Found STLEventually ";
-    left = f;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    if (_tSet)
-      std::cerr << "TODO - Generating Timed STLEventually" << std::endl;
-    else
-      std::cerr << "TODO - Generating STLEventually" << std::endl;
-
-    return bpm;
-  }
+  STLEventually(const TimeInterval &t, STLFormula *f);
+  STLEventually(STLFormula *f);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class STLFormulaUNTIL : public STLFormula {
   TimeInterval _t;
   bool _tSet;
 public:
-  STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2)
-    : _t(t), _tSet(true) {
-    std::cout << "--|--|--|--|--|--) Found Timed STLFormulaUNTIL" << std::endl;
-    left = f1;
-    right = f2;
-  }
-  STLFormulaUNTIL(STLFormula *f1, STLFormula *f2) : _tSet(false){
-    std::cout << "--|--|--|--|--|--|--) Found STLFormulaUNTIL " << std::endl;
-    left = f1;
-    right = f2;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    right->generate();
-    if (_tSet)
-      std::cerr << "TODO - Generating Timed STLFormulaUNTIL" << std::endl;
-    else
-      std::cerr << "TODO - Generating STLFormulaUNTIL" << std::endl;
-
-    return bpm;
-  }
+  STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2);
+  STLFormulaUNTIL(STLFormula *f1, STLFormula *f2);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class Expression : public TreeNode {
   MathOperator _op;
   std::string _value;
 public:
-  Expression(MathOperator op, Expression *e1, Expression *e2)
-    : _op(op) {
-    std::cout << "--|--|--|--|--|--) Found mathematical expression" << std::endl;
-    left = e1;
-    right = e2;
-  }
-  Expression(MathOperator op, std::string value) : _op(op), _value(value) {
-    std::cout << "--|--|--|--|--|--|--) Found mathematical value ";
-    if (op == CONST)
-      std::cout << "[CONST -> ";
-    else if (op == PORT)
-      std::cout << "[PORT -> ";
-    std::cout << value << "]" << std::endl;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    if (_op == CONST || _op == PORT) {
-      // TODO
-    } else {
-      left->generate();
-      right->generate();
-    }
-
-    std::cerr << "TODO - Generating Expression" << std::endl;
-
-    return bpm;
-  }
+  Expression(MathOperator op, Expression *e1, Expression *e2);
+  Expression(MathOperator op, std::string value);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 /********* Boolean Expressions *********/
@@ -248,66 +152,30 @@ class BooleanExpression : public STLFormula {
 
 class BooleanOperation : public BooleanExpression {
 public:
-  BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2) {
-    std::cout << "--|--|--|--) Found boolean operation" << std::endl;
-    left = b1;
-    right = b2;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    right->generate();
-    std::cerr << "TODO - Generating BooleanOperation" << std::endl;
-
-    return bpm;
-  }
+  BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class ComparisonExpression : public BooleanExpression {
   ComparisonOperator _op;
 public:
-  ComparisonExpression(ComparisonOperator op, Expression *e1, Expression *e2) : _op(op) {
-    std::cout << "--|--|--|--|--) Found comparison expression" << std::endl;
-    left = e1;
-    right = e2;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    right->generate();
-    std::cerr << "TODO - Generating ComparisonExpression" << std::endl;
-
-    return bpm;
-  }
+  ComparisonExpression(ComparisonOperator op, Expression *e1, Expression *e2);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class BooleanFunction : public BooleanExpression {};
 
 class isStepFunction : public BooleanFunction {
 public:
-  isStepFunction(Expression *e1, Expression *e2) {
-    std::cout << "--|--|--|--|--|--|--) Found isStep" << std::endl;
-    left = e1;
-    right = e2;
-  }
-  blockPortMapping generate() {
-    blockPortMapping bpm;
-
-    left->generate();
-    right->generate();
-    std::cerr << "TODO - Generating isStepFunction" << std::endl;
-
-    return bpm;
-  }
+  isStepFunction(Expression *e1, Expression *e2);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 class BooleanValue : public BooleanExpression {
   bool _v;
 public:
   BooleanValue(bool v);
-  blockPortMapping generate();
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 
 #endif // UTILITY_H

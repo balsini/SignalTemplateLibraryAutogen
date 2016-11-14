@@ -35,18 +35,6 @@ class STLdriver
   DriverStatus status;
 
   void cleanTree();
-  std::string createEmptyBlock(srcInfo code,
-                               const std::string &parent,
-                               unsigned int x1,
-                               unsigned int x2,
-                               unsigned int y1,
-                               unsigned int y2);
-  void createLine(srcInfo code,
-                  const std::string &src,
-                  const std::string &dst,
-                  const std::string &root,
-                  unsigned int src_p = 1,
-                  unsigned int dst_p = 1);
   std::string createIsStepBlock(srcInfo code,
                                 const std::string &parent,
                                 unsigned int x1,
@@ -116,6 +104,7 @@ public:
   blockPortMapping createExpression(MathOperation * e,
                                     std::string parent,
                                     unsigned int vpos = 0);
+
   ComparisonOperation * createComparisonBlock(ComparisonOperator op,
                                               MathOperation *a,
                                               MathOperation *b = nullptr);
@@ -125,6 +114,20 @@ public:
   MathOperation * createMathBlock(MathOperator op,
                                   MathOperation *a = nullptr,
                                   MathOperation *b = nullptr);
+
+
+  std::string createEmptyBlock(srcInfo code,
+                               const std::string &parent,
+                               unsigned int x1,
+                               unsigned int x2,
+                               unsigned int y1,
+                               unsigned int y2);
+  void createLine(srcInfo code,
+                  const std::string &src,
+                  const std::string &dst,
+                  const std::string &root,
+                  unsigned int src_p = 1,
+                  unsigned int dst_p = 1);
 };
 
 #endif
