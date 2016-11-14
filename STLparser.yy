@@ -106,6 +106,22 @@ DIFF        "diff"
 
 %% /*------------------------------------------------------------------------*/
 
+/*
+ *   **********************
+ *   * Language structure *
+ *   **********************
+ *
+ * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLForall | STLEventually
+ * STLForall : [] {TIME} STLFormula
+ * STLEventually : <> {TIME} STLFormula
+ * STLUntil : STLFormula U {TIME} STLFormula
+ *
+ * Expr : VAL [+,*,-,/] VAL
+ * CmpExpr : Expr [>= | < | ...] Expr
+ * BoolExpr : CmpExpr | boolFunction | TRUE | FALSE
+ *
+ */
+
 parser:
 header  {
   std::cout << "## Header DONE ##" << std::endl;
