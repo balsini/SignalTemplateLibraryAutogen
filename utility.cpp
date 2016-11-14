@@ -89,13 +89,36 @@ isStepFunction::isStepFunction(Expression *e1, Expression *e2)
 
 blockPortMapping isStepFunction::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
-  right->generate(d, parent, 1);
-  std::cerr << "TODO - Generating isStepFunction" << std::endl;
+  std::cout << "Generating isStepFunction" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  blockPortMapping A = left->generate(d, name, 0);
+  blockPortMapping B = right->generate(d, name, 1);
+
+  std::string is = d->createIsStepBlock(SRC_INFO, name, position_X_OP[0], position_X_OP[1], 20, 80);
+
+  d->createLine(SRC_INFO, is, name + "_OUT", name);
+  d->createLine(SRC_INFO, std::get<0>(A), is, name, 1, 1);
+  d->createLine(SRC_INFO, std::get<0>(B), is, name, 1, 2);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+  updateRequiredPorts(d, name, bpm, B, portId);
+
+  return std::make_tuple(name, bpm);
 }
 
 ComparisonExpression::ComparisonExpression(ComparisonOperator op, Expression *e1, Expression *e2) :
@@ -122,24 +145,12 @@ blockPortMapping ComparisonExpression::generate(STLdriver *d, const std::string 
 
   std::string relOp;
   switch (_op) {
-    case GEQ:
-      relOp = ">=";
-      break;
-    case LEQ:
-      relOp = "<=";
-      break;
-    case GREATER:
-      relOp = ">";
-      break;
-    case SMALLER:
-      relOp = "<";
-      break;
-    case EQUAL:
-      relOp = "==";
-      break;
-    case NEQUAL:
-      relOp = "~=";
-      break;
+    case GEQ:     relOp = ">="; break;
+    case LEQ:     relOp = "<="; break;
+    case GREATER: relOp = ">";  break;
+    case SMALLER: relOp = "<";  break;
+    case EQUAL:   relOp = "=="; break;
+    case NEQUAL:  relOp = "~="; break;
     default: break;
   }
 
@@ -166,7 +177,8 @@ blockPortMapping ComparisonExpression::generate(STLdriver *d, const std::string 
   return std::make_tuple(name, bpm);
 }
 
-BooleanOperation::BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2)
+BooleanOperation::BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2) :
+  _op(op)
 {
   std::cout << "--|--|--|--) Found boolean operation" << std::endl;
   left = b1;
@@ -175,13 +187,45 @@ BooleanOperation::BooleanOperation(LogicalOperator op, BooleanExpression *b1, Bo
 
 blockPortMapping BooleanOperation::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
-  right->generate(d, parent, 1);
-  std::cerr << "TODO - Generating BooleanOperation" << std::endl;
+  std::cout << "Generating BooleanOperation" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  std::string logOp;
+  if (_op == AND)
+    logOp = "AND";
+  else if (_op == OR)
+    logOp = "OR";
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/OP']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'Operator', '" + logOp + "');");
+
+  blockPortMapping A = left->generate(d, name, 0);
+  blockPortMapping B = right->generate(d, name, 1);
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+  d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name, 1, 1);
+  d->createLine(SRC_INFO, std::get<0>(B), name + "_OP", name, 1, 2);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+  updateRequiredPorts(d, name, bpm, B, portId);
+
+  return std::make_tuple(name, bpm);
 }
 
 Expression::Expression(MathOperator op, Expression *e1, Expression *e2) :

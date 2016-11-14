@@ -53,7 +53,7 @@ min = stepSize - range;
 
 
 //TRUE && 1 < 2 + 3 * 4;
-SIGA < 100 * 2;
+[]_[1,2]SIGA < 1 + 100 * 2 && REFA >= 0 && isStep(REFA, 3);
 //isStep(1,2);
 
 

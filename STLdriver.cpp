@@ -100,46 +100,6 @@ void STLdriver::createDiffBlock(std::string v)
   std::cout << "createDiffBlock [" + v + "]" << std::endl;
 }
 
-ComparisonOperation * STLdriver::createComparisonBlock(ComparisonOperator op, MathOperation *a, MathOperation *b)
-{
-  std::cout << "--|--|--) createComparisonBlock" << std::endl;
-  //createExpression(a);
-  //createExpression(b);
-
-  ComparisonOperation * c = new ComparisonOperation;
-  c->op = op;
-  c->a = a;
-  c->b = b;
-
-  return c;
-}
-MathOperation * STLdriver::createMathBlock(MathOperator op, MathOperation *a, MathOperation *b)
-{
-  std::cout << "--|--|--|--|--) createMathBlock" << std::endl;
-
-  MathOperation * m = new MathOperation;
-  m->op = op;
-  m->a = a;
-  m->b = b;
-
-  return m;
-}
-
-LogicalOperation * STLdriver::createLogicalBlock(LogicalOperator op, LogicalOperation *a, LogicalOperation *b)
-{
-  std::cout << "--|--|--|--|--) createMathBlock" << std::endl;
-
-  LogicalOperation * l = new LogicalOperation;
-  l->op = op;
-  l->a = a;
-  l->b = b;
-  l->value = nullptr;
-  l->arg1 = nullptr;
-  l->arg2 = nullptr;
-
-  return l;
-}
-
 bool STLdriver::variableExists(std::string v)
 {
   return (variablesValues.find(v) != variablesValues.end());
@@ -308,7 +268,7 @@ std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
   return name;
 }
 
-std::string STLdriver::createSTLFormulaTimeInterval(const TimeInterval &time, const std::string &parent)
+std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::string &parent)
 {
   // Create empty container
   std::string name = createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], 20, 40);
@@ -546,138 +506,6 @@ void STLdriver::createSTLFormulas()
     counter++;
   }
   */
-}
-
-blockPortMapping STLdriver::createSTLFormulaBody(LogicalOperation *l, const std::string &parent, unsigned int vpos)
-{
-  unsigned int y = 40 * vpos + 20;
-  portMapping requiredPorts;
-  //static unsigned int STLFormula_num = 0;
-  //std::string STLFormula_name = "STLFormulaSub_" + std::to_string(STLFormula_num++);
-  blockPortMapping A;
-  blockPortMapping B;
-
-  std::string STLFormula_name = createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
-
-  testBlockAppendLn(SRC_INFO_TEMP, STLFormula_name + "_OUT = add_block('simulink/Sinks/Out1', [" + STLFormula_name + " '/OUT']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OUT,'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
-
-  if (l->op == COMPARISON) {
-    // Create block containing the TWO comparison expressions
-
-    std::string relOp;
-    switch (l->value->op) {
-      case GEQ:
-        relOp = ">=";
-        break;
-      case LEQ:
-        relOp = "<=";
-        break;
-      case GREATER:
-        relOp = ">";
-        break;
-      case SMALLER:
-        relOp = "<";
-        break;
-      case EQUAL:
-        relOp = "==";
-        break;
-      case NEQUAL:
-        relOp = "~=";
-        break;
-      default: break;
-    }
-
-    testBlockAppendLn(SRC_INFO_TEMP, STLFormula_name + "_OP = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + STLFormula_name + " '/OP']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'Operator', '" + relOp + "');");
-
-    //A = createExpression(l->value->a, STLFormula_name, 0);
-    //B = createExpression(l->value->b, STLFormula_name, 1);
-
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
-
-    createLine(SRC_INFO, STLFormula_name + "_OP", STLFormula_name + "_OUT", STLFormula_name);
-    createLine(SRC_INFO, std::get<0>(A), STLFormula_name + "_OP", STLFormula_name, 1, 1);
-    createLine(SRC_INFO, std::get<0>(B), STLFormula_name + "_OP", STLFormula_name, 1, 2);
-  } else if (l->op == ISSTEP) {
-
-    //A = createExpression(l->arg1, STLFormula_name, 0);
-    //B = createExpression(l->arg2, STLFormula_name, 1);
-
-    std::string is = createIsStepBlock(SRC_INFO, STLFormula_name, position_X_OP[0], position_X_OP[1], 20, 80);
-
-    createLine(SRC_INFO, is, STLFormula_name + "_OUT", STLFormula_name);
-    createLine(SRC_INFO, std::get<0>(A), is, STLFormula_name, 1, 1);
-    createLine(SRC_INFO, std::get<0>(B), is, STLFormula_name, 1, 2);
-
-  } else {// AND, OR
-    //////////////////////////
-    // Create logical block //
-    //////////////////////////
-
-    std::string logOp;
-    switch (l->op) {
-      case AND:
-        logOp = "AND";
-        break;
-      case OR:
-        logOp = "OR";
-        break;
-      default: break;
-    }
-
-    testBlockAppendLn(SRC_INFO_TEMP, STLFormula_name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + STLFormula_name + " '/OP']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'Operator', '" + logOp + "');");
-
-    A = createSTLFormulaBody(l->a, STLFormula_name, 0);
-    B = createSTLFormulaBody(l->b, STLFormula_name, 1);
-
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
-
-    createLine(SRC_INFO, STLFormula_name + "_OP", STLFormula_name + "_OUT", STLFormula_name);
-    createLine(SRC_INFO, std::get<0>(A), STLFormula_name + "_OP", STLFormula_name, 1, 1);
-    createLine(SRC_INFO, std::get<0>(B), STLFormula_name + "_OP", STLFormula_name, 1, 2);
-  }
-
-
-  /////////////////////////
-  /// Create input ports //
-  /////////////////////////
-
-  unsigned int portId = 1;
-  for (auto pm : std::get<1>(A)) {
-    portMapping::iterator it = requiredPorts.find(pm.first);
-    if (it == requiredPorts.end()) {
-      // Port needs to be created
-
-      testBlockAppendLn(SRC_INFO_TEMP, STLFormula_name + pm.first + " = add_block('simulink/Sources/In1', [" + STLFormula_name + " '/" + pm.first + "']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
-
-      requiredPorts[pm.first] = portId;
-      portId++;
-    }
-
-    // And line generated
-    createLine(SRC_INFO, STLFormula_name + pm.first, std::get<0>(A), STLFormula_name, 1, pm.second);
-  }
-
-  for (auto pm : std::get<1>(B)) {
-    portMapping::iterator it = requiredPorts.find(pm.first);
-    if (it == requiredPorts.end()) {
-      // Port needs to be created
-
-      testBlockAppendLn(SRC_INFO_TEMP, STLFormula_name + pm.first + " = add_block('simulink/Sources/In1', [" + STLFormula_name + " '/" + pm.first + "']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + STLFormula_name + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
-
-      requiredPorts[pm.first] = portId;
-      portId++;
-    }
-
-    // And line generated
-    createLine(SRC_INFO, STLFormula_name + pm.first, std::get<0>(B), STLFormula_name, 1, pm.second);
-  }
-
-  return std::make_tuple(STLFormula_name, requiredPorts);
 }
 
 void STLdriver::parsePorts()

@@ -151,6 +151,7 @@ class BooleanExpression : public STLFormula {
 };
 
 class BooleanOperation : public BooleanExpression {
+  LogicalOperator _op;
 public:
   BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2);
   blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);

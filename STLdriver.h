@@ -35,12 +35,6 @@ class STLdriver
   DriverStatus status;
 
   void cleanTree();
-  std::string createIsStepBlock(srcInfo code,
-                                const std::string &parent,
-                                unsigned int x1,
-                                unsigned int x2,
-                                unsigned int y1,
-                                unsigned int y2);
 
 public:
   STLdriver(const std::string &path);
@@ -82,7 +76,7 @@ public:
   void error(const std::string& m);
 
   void addSTLFormula(TreeNode *f);
-/*
+  /*
   void createSTLFormula(const TemporalOperator &tOp,
                      const TimeInterval &tIn,
                      LogicalOperation *l,
@@ -90,11 +84,8 @@ public:
                      */
   void createSTLFormulas();
 
-  blockPortMapping createSTLFormulaBody(LogicalOperation *l,
-                                        const std::string &parent,
-                                        unsigned int y = 0);
-  std::string createSTLFormulaTimeInterval(const TimeInterval &time,
-                                    const std::string &parent);
+  std::string createTimeInterval(const TimeInterval &time,
+                                 const std::string &parent);
   /*
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);
@@ -102,17 +93,12 @@ public:
   std::string createSTLFormulaUntil(const std::string &parent);
   void createDiffBlock(std::string v);
 
-  ComparisonOperation * createComparisonBlock(ComparisonOperator op,
-                                              MathOperation *a,
-                                              MathOperation *b = nullptr);
-  LogicalOperation * createLogicalBlock(LogicalOperator op,
-                                        LogicalOperation *a = nullptr,
-                                        LogicalOperation *b = nullptr);
-  MathOperation * createMathBlock(MathOperator op,
-                                  MathOperation *a = nullptr,
-                                  MathOperation *b = nullptr);
-
-
+  std::string createIsStepBlock(srcInfo code,
+                                const std::string &parent,
+                                unsigned int x1,
+                                unsigned int x2,
+                                unsigned int y1,
+                                unsigned int y2);
   std::string createEmptyBlock(srcInfo code,
                                const std::string &parent,
                                unsigned int x1,
