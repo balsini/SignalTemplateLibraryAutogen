@@ -2,6 +2,11 @@
 #define UTILITY_H
 
 #include <iostream>
+#include <map>
+
+typedef std::map<std::string, unsigned int> portMapping;
+typedef std::tuple<std::string, portMapping> blockPortMapping;
+typedef std::tuple<std::string, std::string, int> srcInfo;
 
 class TimeInterval
 {
@@ -76,7 +81,7 @@ public:
     delete right;
     right = nullptr;
   }
-  virtual void generate() {
+  virtual blockPortMapping generate() {
     std::cout << "ERROR: code generation not yet implemented in the child node" << std::endl;
   }
 };
@@ -93,9 +98,13 @@ public:
     std::cout << "--|--|--|--|--|--) Found  STLFormulaNOT" << std::endl;
     left = f;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     std::cout << "TODO - Generating STLFormulaNOT" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -106,10 +115,14 @@ public:
     left = f1;
     right = f2;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     right->generate();
     std::cout << "TODO - Generating STLFormulaAND" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -126,12 +139,16 @@ public:
     std::cout << "--|--|--|--|--|--|--) Found STLAlways ";
     left = f;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     if (_tSet)
       std::cout << "TODO - Generating Timed STLAlways" << std::endl;
     else
       std::cout << "TODO - Generating STLAlways" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -148,12 +165,16 @@ public:
     std::cout << "--|--|--|--|--|--|--) Found STLEventually ";
     left = f;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     if (_tSet)
       std::cout << "TODO - Generating Timed STLEventually" << std::endl;
     else
       std::cout << "TODO - Generating STLEventually" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -172,13 +193,17 @@ public:
     left = f1;
     right = f2;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     right->generate();
     if (_tSet)
       std::cout << "TODO - Generating Timed STLFormulaUNTIL" << std::endl;
     else
       std::cout << "TODO - Generating STLFormulaUNTIL" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -200,7 +225,9 @@ public:
       std::cout << "[PORT -> ";
     std::cout << value << "]" << std::endl;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     if (_op == CONST || _op == PORT) {
       // TODO
     } else {
@@ -209,6 +236,8 @@ public:
     }
 
     std::cout << "TODO - Generating Expression" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -224,10 +253,14 @@ public:
     left = b1;
     right = b2;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     right->generate();
     std::cout << "TODO - Generating BooleanOperation" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -239,10 +272,14 @@ public:
     left = e1;
     right = e2;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     right->generate();
     std::cout << "TODO - Generating ComparisonExpression" << std::endl;
+
+    return bpm;
   }
 };
 
@@ -255,39 +292,23 @@ public:
     left = e1;
     right = e2;
   }
-  void generate() {
+  blockPortMapping generate() {
+    blockPortMapping bpm;
+
     left->generate();
     right->generate();
     std::cout << "TODO - Generating isStepFunction" << std::endl;
+
+    return bpm;
   }
 };
 
 class BooleanValue : public BooleanExpression {
   bool _v;
 public:
-  BooleanValue(bool v) : _v(v) {
-    std::cout << "--|--|--|--|--|--|--) Found boolean value [";
-    if (v)
-      std::cout << "TRUE";
-    else
-      std::cout << "FALSE";
-    std::cout << "]" << std::endl;
-  }
-  void generate() {
-    std::cout << "TODO - Generating BooleanValue [";
-    if (_v)
-      std::cout << "TRUE";
-    else
-      std::cout << "FALSE";
-    std::cout << "]" << std::endl;
-  }
+  BooleanValue(bool v);
+  blockPortMapping generate();
 };
-
-void foundUntil();
-void foundConstantBlock(std::string v);
-void foundPortBlock(std::string v);
-void foundMainTimeRange(TimeInterval t);
-void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2 = "");
 
 #endif // UTILITY_H
 

@@ -6,32 +6,27 @@ std::ostream& operator<<(std::ostream& os, const TimeInterval &obj)
   return os;
 }
 
-void foundConstantBlock(std::string v)
+BooleanValue::BooleanValue(bool v) :
+  _v(v)
 {
-  std::cout << "--|--|--|--|--|--) foundConstantBlock [" << v << "]" << std::endl;
+  std::cout << "--|--|--|--|--|--|--) Found boolean value [";
+  if (v)
+    std::cout << "TRUE";
+  else
+    std::cout << "FALSE";
+  std::cout << "]" << std::endl;
 }
 
-void foundPortBlock(std::string v)
+blockPortMapping BooleanValue::generate()
 {
-  std::cout << "--|--|--|--|--|--) foundPortBlock [" << v << "]" << std::endl;
-}
+  blockPortMapping bpm;
 
-void foundUntil()
-{
-  std::cout << "--|--) foundUntil" << std::endl;
-}
+  std::cout << "TODO - Generating BooleanValue [";
+  if (_v)
+    std::cout << "TRUE";
+  else
+    std::cout << "FALSE";
+  std::cout << "]" << std::endl;
 
-void foundMainTimeRange(TimeInterval t)
-{
-  std::cout << "--|--) foundMainTimeRange ["
-            << (t.startClosed == "off" ? std::string("(") : std::string("["))
-            << t.start << " , "
-            << t.end
-            << (t.endClosed == "off" ? std::string(")") : std::string("]"))
-            << "]" << std::endl;
-}
-
-void foundComparisonExpression(LogicalOperator op, std::string v1, std::string v2)
-{
-  std::cout << "--|--|--) foundComparisonExpression [" << v1 << "][" << v2 << "]" << std::endl;
+  return bpm;
 }

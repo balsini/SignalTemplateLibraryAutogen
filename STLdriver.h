@@ -16,10 +16,6 @@
 // ... and declare it for the parser's sake.
 YY_DECL;
 
-typedef std::map<std::string, unsigned int> portMapping;
-typedef std::tuple<std::string, portMapping> blockPortMapping;
-typedef std::tuple<std::string, std::string, int> srcInfo;
-
 class STLdriver
 {
   std::ofstream testBlockAppendFile;
