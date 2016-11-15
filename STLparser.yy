@@ -47,7 +47,7 @@ OR          "||"
 ;
 
 %token
-NOT "<!> (to be implemented)"
+NOT         "!"
 ;
 
 %token
@@ -55,6 +55,8 @@ LRPAREN     "("
 RRPAREN     ")"
 LSPAREN     "["
 RSPAREN     "]"
+LCPAREN     "{"
+RCPAREN     "}"
 ;
 
 %token
@@ -80,10 +82,10 @@ TRUE        "TRUE"
 FALSE       "FALSE"
 ;
 
-%left "&&" "||";
-%left "!"
-%left "+" "-";
-%left "*" "/";
+%left "&&" "||"
+%left "+" "-"
+%left "*" "/"
+%precedence NEG
 
 
 
@@ -107,6 +109,8 @@ FALSE       "FALSE"
 %type  <STLFormula *>           STLAlways
 %type  <STLFormula *>           STLEventually
 %type  <STLFormula *>           STLUntil
+%type  <STLFormula *>           STLAnd
+%type  <STLFormula *>           STLNeg
 %type  <TimeInterval>           time_range
 %type  <std::string>            lparen
 %type  <std::string>            rparen
@@ -229,50 +233,50 @@ STLFormula   SEMICOLON  {
 ;
 
 STLFormula:
-BoolExpr                    {
-    $$ = $1;
-}
-| STLAlways                 {
-    $$ = $1;
-}
-| STLEventually             {
-    $$ = $1;
-}
-| STLUntil                  {
-    $$ = $1;
-}
-| STLFormula AND STLFormula {
-    $$ = new STLFormulaAND($1, $3);
-}
-| NOT STLFormula            {
+BoolExpr        { $$ = $1; }
+| STLAlways     { $$ = $1; }
+| STLEventually { $$ = $1; }
+| STLUntil      { $$ = $1; }
+| STLAnd        { $$ = $1; }
+| STLNeg        { $$ = $1; }
+;
+
+STLNeg:
+"!" STLFormula %prec NEG      {
     $$ = new STLFormulaNOT($2);
 }
 ;
 
-STLAlways:
-ALWAYS time_range STLFormula       {
-    $$ = new STLAlways($2, $3);
+STLAnd:
+STLFormula AND STLFormula              {
+    $$ = new STLFormulaAND($1, $3);
 }
-| ALWAYS STLFormula                 {
-    $$ = new STLAlways($2);
+;
+
+STLAlways:
+ALWAYS time_range "{" STLFormula "}" {
+    $$ = new STLAlways($2, $4);
+}
+| ALWAYS "{" STLFormula "}"                 {
+    $$ = new STLAlways($3);
 }
 ;
 
 STLEventually:
-EVENTUALLY time_range STLFormula    {
-    $$ = new STLEventually($2, $3);
+EVENTUALLY time_range "{" STLFormula "}"    {
+    $$ = new STLEventually($2, $4);
 }
-| EVENTUALLY STLFormula             {
-    $$ = new STLEventually($2);
+| EVENTUALLY "{" STLFormula "}"            {
+    $$ = new STLEventually($3);
 }
 ;
 
 STLUntil:
-STLFormula UNTIL time_range STLFormula    {
-    $$ = new STLFormulaUNTIL($3, $1, $4);
+STLFormula UNTIL time_range "{" STLFormula "}" {
+    $$ = new STLFormulaUNTIL($3, $1, $5);
 }
-| STLFormula UNTIL STLFormula             {
-    $$ = new STLFormulaUNTIL($1, $3);
+| STLFormula UNTIL "{" STLFormula "}"            {
+    $$ = new STLFormulaUNTIL($1, $4);
 }
 ;
 
@@ -320,7 +324,7 @@ GEQ         {
     $$ = GEQ;
 }
 | LEQ       {
-$$ = LEQ;
+    $$ = LEQ;
 }
 | GREATER   {
     $$ = GREATER;

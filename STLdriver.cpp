@@ -67,7 +67,10 @@ void STLdriver::fileAppend(const std::string &s, std::ofstream &f)
   f << s;
 }
 
-void STLdriver::testBlockAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s)
+void STLdriver::testBlockAppendLn(const std::string &fileName,
+                                  const std::string &functionName,
+                                  int lineNumber,
+                                  const std::string &s)
 {
   fileAppend("% " + fileName + "::" + functionName + "::" + std::to_string(lineNumber), testBlockAppendFile);
   //std::cout << std::endl;
@@ -81,7 +84,10 @@ void STLdriver::testBlockAppendLn(const std::string &fileName, const std::string
   testBlockAppendFile << std::endl;
 }
 
-void STLdriver::testBlockRoutingAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s)
+void STLdriver::testBlockRoutingAppendLn(const std::string &fileName,
+                                         const std::string &functionName,
+                                         int lineNumber,
+                                         const std::string &s)
 {
   fileAppend("% " + fileName + "::" + functionName + "::" + std::to_string(lineNumber), testBlockRoutingAppendFile);
   //std::cout << std::endl;
@@ -137,7 +143,12 @@ void STLdriver::printConstantValues()
   std::cout << std::endl << "-/--/--/--/--/--/--/--/--/-" << std::endl << std::endl;
 }
 
-std::string STLdriver::createIsStepBlock(srcInfo code, const std::string &parent, unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2)
+std::string STLdriver::createIsStepBlock(srcInfo code,
+                                         const std::string &parent,
+                                         unsigned int x1,
+                                         unsigned int x2,
+                                         unsigned int y1,
+                                         unsigned int y2)
 {
   // Create empty container
   std::string name = createEmptyBlock(SRC_INFO, parent, x1, x2, y1, y2);
@@ -173,7 +184,12 @@ std::string STLdriver::createIsStepBlock(srcInfo code, const std::string &parent
   return name;
 }
 
-std::string STLdriver::createEmptyBlock(srcInfo code, const std::string &parent, unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2)
+std::string STLdriver::createEmptyBlock(srcInfo code,
+                                        const std::string &parent,
+                                        unsigned int x1,
+                                        unsigned int x2,
+                                        unsigned int y1,
+                                        unsigned int y2)
 {
   static unsigned int identifier = 0;
   std::string name = "blk" + std::to_string(identifier++);
@@ -200,8 +216,6 @@ void STLdriver::createLine(srcInfo code,
   testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "InPort1 = get_param(" + dst + ", 'PortHandles');");
   testBlockAppendLn(std::get<0>(code), std::get<1>(code), std::get<2>(code), "add_line(" + root + ", OutPort1.Outport(" + std::to_string(src_p) + "), InPort1.Inport(" + std::to_string(dst_p) + ")" + ADD_LINE_AUTOROUTING + ");");
 }
-
-
 
 std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
 {
@@ -297,7 +311,7 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
 
   return name;
 }
-/*
+
 std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std::string parent)
 {
   // Create empty container
@@ -375,137 +389,25 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
     default:
       break;
   }
-
   return name;
 }
-*/
+
 void STLdriver::createSTLFormulas()
 {
+  portMapping bpm;
+  unsigned int portId = 1;
+
   unsigned int counter = 0;
   for (TreeNode * n : nodes) {
-    std::cout << std::endl << "Node " << counter++ << std::endl;
-    n->generate(this, "ROOT", 0);
-  }
+    std::string name = "Predicate_" + std::to_string(counter);
+    std::cout << std::endl << name << std::endl;
 
-  /*
-  portMapping requiredPorts;
-  unsigned int mainPortId = 1;
-  unsigned int counter = 0;
-  for (auto ll : STLFormulas) {
-    std::string formulaName = createEmptyBlock(SRC_INFO, "ROOT", position_X_EXP[0], position_X_EXP[1], portOffset * counter + 20, portOffset * counter + 20 + 20);
+    blockPortMapping bm = n->generate(this, "ROOT", counter);
 
-    blockPortMapping bpm = createSTLFormulaBody(std::get<2>(ll), formulaName, 1);
-
-    std::string untilBlock;
-    blockPortMapping bpm2;
-
-    if (std::get<3>(ll) != nullptr) {
-      bpm2 = createSTLFormulaBody(std::get<3>(ll), formulaName, 2);
-      untilBlock = createSTLFormulaUntil(formulaName);
-    }
-
-    testBlockAppendLn(SRC_INFO_TEMP, formulaName + "_OUT = add_block('simulink/Sinks/Out1', [ROOT '/" + formulaName + "/VALID']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + "_OUT, 'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40]);");
-
-    testBlockAppendLn(SRC_INFO_TEMP, formulaName + "_ASSERT = add_block('simulink/Model Verification/Assertion', [ROOT '/VALID_" + std::to_string(counter) + "']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + formulaName + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
-
-    createLine(SRC_INFO, formulaName, formulaName + "_ASSERT", "ROOT");
-
-    std::string ti = createSTLFormulaTimeInterval(std::get<1>(ll), formulaName);
-
-
-    if (std::get<3>(ll) == nullptr) {
-      std::string to = createSTLFormulaTemporalOperator(std::get<0>(ll), formulaName);
-
-      createLine(SRC_INFO, ti, to, formulaName, 1, 1);
-      createLine(SRC_INFO, std::get<0>(bpm), to, formulaName, 1, 2);
-
-      createLine(SRC_INFO, to, formulaName + "_OUT", formulaName);
-    } else {
-      createLine(SRC_INFO, ti, untilBlock, formulaName, 1, 1);
-      createLine(SRC_INFO, std::get<0>(bpm), untilBlock, formulaName, 1, 2);
-      createLine(SRC_INFO, std::get<0>(bpm2), untilBlock, formulaName, 1, 3);
-
-      createLine(SRC_INFO, untilBlock, formulaName + "_OUT", formulaName);
-    }
-
-    portMapping localRequiredPorts;
-
-    // Create ports required by the formula
-    unsigned int portId = 1;
-    bool portFound = false;
-    for (auto pm : std::get<1>(bpm)) {
-
-      portMapping::iterator itl = localRequiredPorts.find(std::get<0>(pm));
-      if (itl == localRequiredPorts.end()) {
-        // Create port inside block
-        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + formulaName + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + formulaName + "/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + formulaName + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
-
-        localRequiredPorts[std::get<0>(pm)] = portId;
-        portFound = true;
-      }
-      // And line inside block
-      createLine(SRC_INFO, "TEST_ROOT_IN" + formulaName + pm.first, std::get<0>(bpm), formulaName, 1, pm.second);
-
-      portMapping::iterator it = requiredPorts.find(std::get<0>(pm));
-      if (it == requiredPorts.end()) {
-        // Port needs to be created
-
-        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20 + 20) + "]);");
-
-        requiredPorts[std::get<0>(pm)] = mainPortId;
-        mainPortId++;
-      }
-
-      // And line outside block
-      if (portFound) {
-        portFound = false;
-
-        createLine(SRC_INFO, "TEST_ROOT_IN" + pm.first, formulaName, "ROOT", 1, portId);
-        portId++;
-      }
-    }
-
-    for (auto pm : std::get<1>(bpm2)) {
-
-      portMapping::iterator itl = localRequiredPorts.find(std::get<0>(pm));
-      if (itl == localRequiredPorts.end()) {
-        // Create port inside block
-        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + formulaName + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + formulaName + "/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + formulaName + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (portId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (portId - 1) + 20 + 20) + "]);");
-
-        localRequiredPorts[std::get<0>(pm)] = portId;
-        portFound = true;
-      }
-      // And line inside block
-      createLine(SRC_INFO, "TEST_ROOT_IN" + formulaName + pm.first, std::get<0>(bpm2), formulaName, 1, pm.second);
-
-      portMapping::iterator it = requiredPorts.find(std::get<0>(pm));
-      if (it == requiredPorts.end()) {
-        // Port needs to be created
-
-        testBlockAppendLn(SRC_INFO_TEMP, "TEST_ROOT_IN" + pm.first + " = add_block('simulink/Sources/In1', [ROOT '/" + pm.first + "']);");
-        testBlockAppendLn(SRC_INFO_TEMP, "set_param(TEST_ROOT_IN" + pm.first + ",'position',[" + std::to_string(position_X_IN[0]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20) + ", " + std::to_string(position_X_IN[1]) + ", " + std::to_string(portOffset * (mainPortId - 1) + 20 + 20) + "]);");
-
-        requiredPorts[std::get<0>(pm)] = mainPortId;
-        mainPortId++;
-      }
-
-      // And line outside block
-      if (portFound) {
-        portFound = false;
-
-        createLine(SRC_INFO, "TEST_ROOT_IN" + pm.first, formulaName, "ROOT", 1, portId);
-        portId++;
-      }
-    }
+    updateRequiredPorts(this, "ROOT", bpm, bm, portId);
 
     counter++;
   }
-  */
 }
 
 void STLdriver::parsePorts()

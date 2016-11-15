@@ -45,7 +45,7 @@ enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
 enum LogicalOperator { AND, OR, NOT, COMPARISON, ISSTEP };
 enum MathOperator { SUM, SUB, MUL, DIV, CONST, PORT };
-//enum TemporalOperator { ALWAYS, EVENTUALLY };
+enum TemporalOperator { ALWAYS, EVENTUALLY };
 
 struct MathOperation {
   MathOperator op;
@@ -178,6 +178,12 @@ public:
   BooleanValue(bool v);
   blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
+
+void updateRequiredPorts(STLdriver *d,
+                         const std::string &name,
+                         portMapping &bpm,
+                         const blockPortMapping &A,
+                         unsigned int &portId);
 
 #endif // UTILITY_H
 

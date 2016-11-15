@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& os, const TimeInterval &obj)
   return os;
 }
 
-void updateRequiredPorts(STLdriver *d, const std::string name, portMapping &bpm, const blockPortMapping &A, unsigned int &portId)
+void updateRequiredPorts(STLdriver *d, const std::string &name, portMapping &bpm, const blockPortMapping &A, unsigned int &portId)
 {
   for (auto pm : std::get<1>(A)) {
     portMapping::iterator it = bpm.find(pm.first);
@@ -65,7 +65,7 @@ blockPortMapping BooleanValue::generate(STLdriver *d, const std::string &parent,
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
 
   // Create boolean value
-  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_B = add_block('simulink/Sources/Constant', [" + name + " '/TRUE']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_B = add_block('simulink/Sources/Constant', [" + name + " '/B']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_B, 'OutDataTypeStr', 'boolean');");
   if (_v) {
@@ -414,15 +414,46 @@ STLAlways::STLAlways(STLFormula *f) :
 
 blockPortMapping STLAlways::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
+  std::cout << "Generating ";
   if (_tSet)
-    std::cerr << "TODO - Generating Timed STLAlways" << std::endl;
-  else
-    std::cerr << "TODO - Generating STLAlways" << std::endl;
+    std::cout << "Timed ";
+  std::cout << "STLAlways" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  ///////////////////////////
+  /// Generate expressions //
+  ///////////////////////////
+
+  blockPortMapping A = left->generate(d, name, _tSet ? 1 : 0);
+
+  if (_tSet) {
+    std::string to = d->createSTLFormulaTemporalOperator(ALWAYS, name);
+    std::string ti = d->createTimeInterval(_t, name);
+
+    d->createLine(SRC_INFO, ti, to, name, 1, 1);
+    d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
+    d->createLine(SRC_INFO, to, name + "_OUT", name);
+  } else {
+    d->createLine(SRC_INFO, std::get<0>(A), name + "_OUT", name);
+  }
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+
+  return std::make_tuple(name, bpm);
 }
 
 STLFormulaAND::STLFormulaAND(STLFormula *f1, STLFormula *f2)
@@ -434,13 +465,34 @@ STLFormulaAND::STLFormulaAND(STLFormula *f1, STLFormula *f2)
 
 blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
-  right->generate(d, parent, 1);
-  std::cerr << "TODO - Generating STLFormulaAND" << std::endl;
+  std::cout << "TODO - Generating STLFormulaAND" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  ///////////////////////////
+  /// Generate expressions //
+  ///////////////////////////
+
+  blockPortMapping A = left->generate(d, name, 0);
+  blockPortMapping B = right->generate(d, name, 1);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+  updateRequiredPorts(d, name, bpm, B, portId);
+
+  return std::make_tuple(name, bpm);
 }
 
 STLFormulaNOT::STLFormulaNOT(STLFormula *f)
@@ -451,10 +503,33 @@ STLFormulaNOT::STLFormulaNOT(STLFormula *f)
 
 blockPortMapping STLFormulaNOT::generate(STLdriver *d, const std::string &parent, int vpos)
 {
-  blockPortMapping bpm;
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
 
-  left->generate(d, parent, 0);
   std::cerr << "TODO - Generating STLFormulaNOT" << std::endl;
 
-  return bpm;
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  blockPortMapping A = left->generate(d, name, 0);
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/NEG']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'Operator', 'NOT');");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+  d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name, 1, 1);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+
+  return std::make_tuple(name, bpm);
 }

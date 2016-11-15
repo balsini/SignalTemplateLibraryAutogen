@@ -2,13 +2,12 @@
 // Definition of constant values //
 ///////////////////////////////////
 
-T = 1;
-T2 = T;
-T4 = T3 = 3;
-range = (0.3 + T) * 1.1;
-range2 = 0.3 * T + 1.1;
+T0 = 0.5;
+T1 = 1.5;
+T4 = T3 = T2 = 4;
 
 stepSize = 5;
+range = 2;
 
 max = stepSize + range;
 min = stepSize - range;
@@ -53,8 +52,14 @@ min = stepSize - range;
 
 
 //TRUE && 1 < 2 + 3 * 4;
-[]_[1,2]SIGA < 1 + 100 * 2 && REFA >= 0 && isStep(REFA, 3);
+//SIGA < 1 + 100 * 2 && REFA >= 0 && isStep(REFA, 3);
 //isStep(1,2);
 
 
-//[]_[0 , T] TRUE;
+[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
+
+[]_[T0, T1] { isStep(REFA, stepSize) && TRUE };
+
+[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
+
+[] { isStep(REFA, stepSize) && TRUE };

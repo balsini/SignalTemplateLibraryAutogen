@@ -56,8 +56,14 @@ public:
 
   // Appends to the AUTOGEN file the given string
   void fileAppend(const std::string &s, std::ofstream &f);
-  void testBlockAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s);
-  void testBlockRoutingAppendLn(const std::string &fileName, const std::string &functionName, int lineNumber, const std::string &s);
+  void testBlockAppendLn(const std::string &fileName,
+                         const std::string &functionName,
+                         int lineNumber,
+                         const std::string &s);
+  void testBlockRoutingAppendLn(const std::string &fileName,
+                                const std::string &functionName,
+                                int lineNumber,
+                                const std::string &s);
 
   // Handling the scanner.
   void scan_begin();
@@ -76,20 +82,14 @@ public:
   void error(const std::string& m);
 
   void addSTLFormula(TreeNode *f);
-  /*
-  void createSTLFormula(const TemporalOperator &tOp,
-                     const TimeInterval &tIn,
-                     LogicalOperation *l,
-                     LogicalOperation *u = nullptr); // Used for UNTIL
-                     */
   void createSTLFormulas();
 
   std::string createTimeInterval(const TimeInterval &time,
                                  const std::string &parent);
-  /*
+
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);
-                                        */
+
   std::string createSTLFormulaUntil(const std::string &parent);
   void createDiffBlock(std::string v);
 
