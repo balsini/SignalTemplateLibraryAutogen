@@ -61,9 +61,11 @@ RCPAREN     "}"
 
 %token
 ALWAYS      "[]"
+ALWAYST     "[]_"
 EVENTUALLY  "<>"
-UNDERSCORE  "_"
+EVENTUALLYT "<>_"
 UNTIL       "U"
+UNTILT      "U_"
 ;
 
 %token
@@ -254,7 +256,7 @@ STLFormula AND STLFormula              {
 ;
 
 STLAlways:
-ALWAYS time_range "{" STLFormula "}" {
+ALWAYST time_range "{" STLFormula "}" {
     $$ = new STLAlways($2, $4);
 }
 | ALWAYS "{" STLFormula "}"                 {
@@ -263,7 +265,7 @@ ALWAYS time_range "{" STLFormula "}" {
 ;
 
 STLEventually:
-EVENTUALLY time_range "{" STLFormula "}"    {
+EVENTUALLYT time_range "{" STLFormula "}"    {
     $$ = new STLEventually($2, $4);
 }
 | EVENTUALLY "{" STLFormula "}"            {
@@ -272,10 +274,10 @@ EVENTUALLY time_range "{" STLFormula "}"    {
 ;
 
 STLUntil:
-STLFormula UNTIL time_range STLFormula {
+STLFormula "U_" time_range STLFormula {
     $$ = new STLFormulaUNTIL($3, $1, $4);
 }
-| STLFormula UNTIL STLFormula           {
+| STLFormula "U" STLFormula           {
     $$ = new STLFormulaUNTIL($1, $3);
 }
 ;
@@ -393,8 +395,8 @@ FNUM    {
 ;
 
 time_range:
-"_" lparen exp "," exp rparen   {
-    $$ = TimeInterval($3, $2, $5, $6);
+lparen exp "," exp rparen   {
+    $$ = TimeInterval($2, $1, $4, $5);
 }
 ;
 

@@ -74,9 +74,11 @@ blank [ \t]
 "!"   return yy::STLparser::make_NOT(loc);
 
 "[]"  return yy::STLparser::make_ALWAYS(loc);
+"[]_"  return yy::STLparser::make_ALWAYST(loc);
 "<>"  return yy::STLparser::make_EVENTUALLY(loc);
-"_"   return yy::STLparser::make_UNDERSCORE(loc);
+"<>_"  return yy::STLparser::make_EVENTUALLYT(loc);
 "U"   return yy::STLparser::make_UNTIL(loc);
+"U_"   return yy::STLparser::make_UNTILT(loc);
 
 "TRUE"   return yy::STLparser::make_TRUE(loc);
 "FALSE"   return yy::STLparser::make_FALSE(loc);
