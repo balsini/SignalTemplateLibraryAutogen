@@ -404,6 +404,11 @@ void STLdriver::createSTLFormulas()
 
     blockPortMapping bm = n->generate(this, "ROOT", counter);
 
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [ROOT '/VALID_" + std::to_string(counter) + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
+
+    createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_ASSERT", "ROOT");
+
     updateRequiredPorts(this, "ROOT", bpm, bm, portId);
 
     counter++;
