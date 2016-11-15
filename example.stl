@@ -56,10 +56,13 @@ min = stepSize - range;
 //isStep(1,2);
 
 
+<>_[T0, T1] { isStep(SIGA, stepSize) U TRUE };
+/*
+
 []_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
 
 []_[T0, T1] { isStep(REFA, stepSize) && TRUE };
 
-[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
 
 [] { isStep(REFA, stepSize) && TRUE };
+*/

@@ -272,11 +272,11 @@ EVENTUALLY time_range "{" STLFormula "}"    {
 ;
 
 STLUntil:
-STLFormula UNTIL time_range "{" STLFormula "}" {
-    $$ = new STLFormulaUNTIL($3, $1, $5);
+STLFormula UNTIL time_range STLFormula {
+    $$ = new STLFormulaUNTIL($3, $1, $4);
 }
-| STLFormula UNTIL "{" STLFormula "}"            {
-    $$ = new STLFormulaUNTIL($1, $4);
+| STLFormula UNTIL STLFormula           {
+    $$ = new STLFormulaUNTIL($1, $3);
 }
 ;
 
