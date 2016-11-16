@@ -46,6 +46,7 @@ blank [ \t]
 
 "isStep" return yy::STLparser::make_ISSTEP(loc);
 "diff" return yy::STLparser::make_DIFF(loc);
+"abs" return yy::STLparser::make_ABS(loc);
 
 ","   return yy::STLparser::make_COMMA(loc);
 ";"   return yy::STLparser::make_SEMICOLON(loc);

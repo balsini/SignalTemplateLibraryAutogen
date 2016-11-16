@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);
 enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
 enum LogicalOperator { AND, OR, NOT, COMPARISON, ISSTEP };
-enum MathOperator { SUM, SUB, MUL, DIV, CONST, PORT };
+enum MathOperator { SUM, SUB, MUL, DIV, ABS, DIFF, CONST, PORT };
 enum TemporalOperator { ALWAYS, EVENTUALLY };
 
 struct MathOperation {
@@ -140,11 +140,19 @@ public:
 };
 
 class Expression : public TreeNode {
-  MathOperator _op;
   std::string _value;
+protected:
+  MathOperator _op;
 public:
+  Expression() {}
   Expression(MathOperator op, Expression *e1, Expression *e2);
   Expression(MathOperator op, std::string value);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+};
+
+class ExpressionFunction : public Expression {
+public:
+  ExpressionFunction(MathOperator op, Expression *e);
   blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
 };
 

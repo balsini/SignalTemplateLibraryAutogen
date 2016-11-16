@@ -57,7 +57,8 @@ min = stepSize - range;
 
 //<> { isStep(SIGA, stepSize) U_[0,1] <>_[T0, T1] { isStep(SIGA, stepSize)} };
 
-[]_[0,2] { TRUE U_[0.5,1.5] TRUE };
+[]_[0,2] { abs(SIGA - 5) < 10 };
+[]_[0,2] { diff(REFA) < 10 };
 
 
 //[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };

@@ -338,6 +338,64 @@ blockPortMapping Expression::generate(STLdriver *d, const std::string &parent, i
   return std::make_tuple(name, bpm);
 }
 
+ExpressionFunction::ExpressionFunction(MathOperator op, Expression *e)
+{
+  std::cout << "--|--|--|--|--|--) Found ExpressionFunction" << std::endl;
+  _op = op;
+  left = e;
+}
+
+blockPortMapping ExpressionFunction::generate(STLdriver *d, const std::string &parent, int vpos)
+{
+
+  portMapping bpm;
+  unsigned int y = 40 * vpos + 20;
+
+  std::cout << "Generating ExpressionFunction" << std::endl;
+
+  // Create empty container
+  std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
+
+  // Create OUT port
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
+
+  switch (_op) {
+    case ABS:
+      d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Math Operations/Abs', [" + name + " '/OP']);");
+      break;
+    case DIFF:
+      d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Continuous/Derivative', [" + name + " '/OP']);");
+      break;
+    default: break;
+  }
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 40]);");
+
+  ///////////////////////////
+  /// Generate expressions //
+  ///////////////////////////
+
+  blockPortMapping A = left->generate(d, name, 0);
+
+  /////////////////////////////////////
+  /// Create output port connections //
+  /////////////////////////////////////
+
+  d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name);
+
+  /////////////////////////
+  /// Create input ports //
+  /////////////////////////
+
+  unsigned int portId = 1;
+  updateRequiredPorts(d, name, bpm, A, portId);
+
+  return std::make_tuple(name, bpm);
+}
+
+
 STLFormulaUNTIL::STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2) :
   _t(t),
   _tSet(true)

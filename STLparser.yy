@@ -80,6 +80,7 @@ NEQUAL      "!="
 %token
 ISSTEP      "isStep"
 DIFF        "diff"
+ABS         "abs"
 TRUE        "TRUE"
 FALSE       "FALSE"
 ;
@@ -343,8 +344,14 @@ GEQ         {
 ;
 
 expWP:
-expWP1  {
+expWP1              {
     $$ = $1;
+}
+| ABS "(" expWP ")" {
+    $$ = new ExpressionFunction(ABS, $3);
+}
+| DIFF "(" expWP ")" {
+    $$ = new ExpressionFunction(DIFF, $3);
 }
 ;
 
@@ -417,12 +424,6 @@ RRPAREN     {
     $$ = "]";
 }
 ;
-
-//function:
-//  DIFF "(" exp ")" {
-//    driver.createDiffBlock($3);
-//  }
-//;
 
 /*
  * *************************** FOOTER ***************************
