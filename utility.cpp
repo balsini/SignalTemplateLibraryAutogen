@@ -598,7 +598,7 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
 
-  std::cout << "TODO - Generating STLFormulaAND" << std::endl;
+  std::cout << "Generating STLFormulaAND" << std::endl;
 
   // Create empty container
   std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);
@@ -641,7 +641,7 @@ blockPortMapping STLFormulaNOT::generate(STLdriver *d, const std::string &parent
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
 
-  std::cerr << "TODO - Generating STLFormulaNOT" << std::endl;
+  std::cout << "Generating STLFormulaNOT" << std::endl;
 
   // Create empty container
   std::string name = d->createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], y, y + 20);

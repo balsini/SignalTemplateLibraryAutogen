@@ -245,8 +245,8 @@ BoolExpr        { $$ = $1; }
 ;
 
 STLNeg:
-"!" STLFormula %prec NEG      {
-    $$ = new STLFormulaNOT($2);
+"!" "(" STLFormula ")"  {
+    $$ = new STLFormulaNOT($3);
 }
 ;
 
