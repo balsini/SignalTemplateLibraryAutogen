@@ -444,17 +444,20 @@ blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent
   ///////////////////////////
 
   blockPortMapping A = left->generate(d, name, _tSet ? 1 : 0);
+  std::string ti;
 
   if (_tSet) {
-    std::string to = d->createSTLFormulaTemporalOperator(EVENTUALLY, name);
-    std::string ti = d->createTimeInterval(_t, name);
-
-    d->createLine(SRC_INFO, ti, to, name);
-    d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
-    d->createLine(SRC_INFO, to, name + "_OUT", name);
+    ti = d->createTimeInterval(_t, name);
   } else {
-    d->createLine(SRC_INFO, std::get<0>(A), name + "_OUT", name);
+    TimeInterval t("[", "0", "X", "]");
+    ti = d->createTimeInterval(t, name);
   }
+
+  std::string to = d->createSTLFormulaTemporalOperator(EVENTUALLY, name);
+
+  d->createLine(SRC_INFO, ti, to, name);
+  d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
+  d->createLine(SRC_INFO, to, name + "_OUT", name);
 
   /////////////////////////
   /// Create input ports //

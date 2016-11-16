@@ -55,13 +55,14 @@ min = stepSize - range;
 //SIGA < 1 + 100 * 2 && REFA >= 0 && isStep(REFA, 3);
 //isStep(1,2);
 
+//<> { isStep(SIGA, stepSize) U_[0,1] <>_[T0, T1] { isStep(SIGA, stepSize)} };
 
-<>_[T0, T1] { isStep(SIGA, stepSize) U_[0,1] <>_[T0, T1] { isStep(SIGA, stepSize)} };
-
-
-[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
-
-[]_[T0, T1] { isStep(REFA, stepSize) && TRUE };
+[]_[0,2] { TRUE U_[0.5,1.5] TRUE };
 
 
-[] { isStep(REFA, stepSize) && TRUE };
+//[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
+
+//[]_[T0, T1] { isStep(REFA, stepSize) && TRUE };
+
+
+//[] { isStep(REFA, stepSize) && TRUE };

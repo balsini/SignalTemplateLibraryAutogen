@@ -16,10 +16,13 @@ class STLdriver;
 class TimeInterval
 {
 public:
-  TimeInterval(std::string l, std::string li, std::string r, std::string ri) :
+  TimeInterval(std::string li, std::string l, std::string r, std::string ri) :
     start(l),
     end(r)
   {
+    if ( (li != "[" && li != "(") || (ri != "]" && ri != ")") )
+      throw "Wrong interval delimiter";
+
     if (li == "(")
       startClosed = "off";
     else

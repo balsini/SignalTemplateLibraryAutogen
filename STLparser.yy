@@ -396,7 +396,7 @@ FNUM    {
 
 time_range:
 lparen exp "," exp rparen   {
-    $$ = TimeInterval($2, $1, $4, $5);
+    $$ = TimeInterval($1, $2, $4, $5);
 }
 ;
 
