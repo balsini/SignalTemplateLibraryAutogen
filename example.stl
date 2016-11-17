@@ -59,8 +59,9 @@ min = stepSize - range;
 
 //[]_[0,2] { abs(SIGA - 5) < 10 };
 //[]_[0,2] { diff(REFA) < 10 };
-! ([]_[0,2] { []_[0,1] { FALSE } && []_[0,1] { FALSE } } ); // TODO
+//! ([]_[0,2] { []_[0,1] { FALSE } && []_[0,1] { FALSE } } ); // TODO
 
+[]_[1,2] { TRUE U FALSE };
 
 //[]_[T0, T1] { isStep(SIGA, stepSize) && TRUE };
 

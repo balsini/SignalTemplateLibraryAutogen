@@ -434,24 +434,33 @@ blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &pare
   /// Generate expressions //
   ///////////////////////////
 
-  blockPortMapping A = left->generate(d, name, 1);
-  blockPortMapping B = right->generate(d, name, 2);
+  blockPortMapping A = left->generate(d, name, 2);
+  blockPortMapping B = right->generate(d, name, 3);
 
-  std::string untilBlock = d->createSTLFormulaUntil(name);
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_UNTIL = add_block('STLlib/Until', [" + name + " '/UNTIL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_UNTIL, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
-  //
-  d->createLine(SRC_INFO, std::get<0>(A), untilBlock, name, 1, 2);
-  d->createLine(SRC_INFO, std::get<0>(B), untilBlock, name, 1, 3);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_UNTIL", name, 1, 3);
+  d->createLine(SRC_INFO, std::get<0>(B), name + "_UNTIL", name, 1, 4);
 
-  d->createLine(SRC_INFO, untilBlock, name + "_OUT", name);
+  d->createLine(SRC_INFO, name + "_UNTIL", name + "_OUT", name);
+
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_RI = add_block('simulink/Sources/Constant', [" + name + " '/RIGHT_INTERVAL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
+
+  d->createLine(SRC_INFO, name + "_RI", name + "_UNTIL", name, 1, 2);
 
   if (_tSet) {
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'Value', '" + _t.end + "');");
+
     std::string ti = d->createTimeInterval(_t, name);
-    d->createLine(SRC_INFO, ti, untilBlock, name);
+    d->createLine(SRC_INFO, ti, name + "_UNTIL", name);
   } else {
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'Value', 'inf');");
+
     BooleanValue bv(true);
     blockPortMapping bvpm = bv.generate(d, name, 0);
-    d->createLine(SRC_INFO, std::get<0>(bvpm), untilBlock, name);
+    d->createLine(SRC_INFO, std::get<0>(bvpm), name + "_UNTIL", name);
   }
 
   /////////////////////////
