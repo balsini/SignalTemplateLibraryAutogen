@@ -147,7 +147,8 @@ header  {
 BODYSTART
 body    {
     std::cout << "## Body DONE ##" << std::endl;
-    driver.createSTLFormulas();
+    blockPortMapping bpm = driver.createSTLFormulas();
+    driver.linkSTLFormulas(bpm);
     driver.setStatus(FOOTER);
 }
 footer  {

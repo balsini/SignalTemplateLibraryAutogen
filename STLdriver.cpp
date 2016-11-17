@@ -354,27 +354,35 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
   return name;
 }
 
-void STLdriver::createSTLFormulas()
+blockPortMapping STLdriver::createSTLFormulas()
 {
   portMapping bpm;
   unsigned int portId = 1;
+  std::string name = "ROOT";
 
   unsigned int counter = 0;
   for (TreeNode * n : nodes) {
     std::string name = "Predicate_" + std::to_string(counter);
     std::cout << std::endl << name << std::endl;
 
-    blockPortMapping bm = n->generate(this, "ROOT", counter);
+    blockPortMapping bm = n->generate(this, name, counter);
 
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [ROOT '/VALID_" + std::to_string(counter) + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [" + name + " '/VALID_" + std::to_string(counter) + "']);");
     testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
 
-    createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_ASSERT", "ROOT");
+    createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_ASSERT", name);
 
-    updateRequiredPorts(this, "ROOT", bpm, bm, portId);
+    updateRequiredPorts(this, name, bpm, bm, portId);
 
     counter++;
   }
+
+  return std::make_tuple(name, bpm);
+}
+
+void STLdriver::linkSTLFormulas(const blockPortMapping &bpm)
+{
+  std::cerr << "Running linkSTLFormulas" << std::endl;
 }
 
 void STLdriver::parsePorts()

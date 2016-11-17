@@ -82,7 +82,8 @@ public:
   void error(const std::string& m);
 
   void addSTLFormula(TreeNode *f);
-  void createSTLFormulas();
+  blockPortMapping createSTLFormulas();
+  void linkSTLFormulas(const blockPortMapping &bpm);
 
   std::string createTimeInterval(const TimeInterval &time,
                                  const std::string &parent);
