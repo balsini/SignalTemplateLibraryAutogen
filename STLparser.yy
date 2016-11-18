@@ -142,14 +142,12 @@ parser:
 header  {
     std::cout << "## Header DONE ##" << std::endl;
     driver.printConstantValues();
-    driver.setStatus(BODY);
 }
 BODYSTART
 body    {
     std::cout << "## Body DONE ##" << std::endl;
     blockPortMapping bpm = driver.createSTLFormulas();
     driver.linkSTLFormulas(bpm);
-    driver.setStatus(FOOTER);
 }
 footer  {
     std::cout << "## Footer DONE ##" << std::endl;

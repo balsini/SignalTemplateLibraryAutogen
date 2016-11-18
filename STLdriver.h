@@ -19,7 +19,6 @@ YY_DECL;
 class STLdriver
 {
   std::ofstream testBlockAppendFile;
-  std::ofstream testBlockRoutingAppendFile;
   std::ifstream systemPortsFile;
 
   std::string path;
@@ -32,8 +31,6 @@ class STLdriver
   bool REF_input;
   bool SIG_input;
 
-  DriverStatus status;
-
   void cleanTree();
 
 public:
@@ -44,8 +41,6 @@ public:
   bool portExists(std::string v);
   void setVariable(std::string name, std::string value);
   std::string getVariable(std::string name);
-
-  void setStatus(DriverStatus s);
 
   void printConstantValues();
 
@@ -60,10 +55,6 @@ public:
                          const std::string &functionName,
                          int lineNumber,
                          const std::string &s);
-  void testBlockRoutingAppendLn(const std::string &fileName,
-                                const std::string &functionName,
-                                int lineNumber,
-                                const std::string &s);
 
   // Handling the scanner.
   void scan_begin();

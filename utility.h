@@ -37,7 +37,6 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);
 
-enum DriverStatus { HEADER, BODY, FOOTER };
 enum ComparisonOperator { GEQ, LEQ, GREATER, SMALLER, EQUAL, NEQUAL };
 enum LogicalOperator { AND, OR, NOT, COMPARISON, ISSTEP };
 enum MathOperator { SUM, SUB, MUL, DIV, ABS, DIFF, CONST, PORT };

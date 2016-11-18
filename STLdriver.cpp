@@ -16,24 +16,18 @@ STLdriver::STLdriver(const std::string &path) :
   trace_scanning(false),
   trace_parsing(false),
   REF_input(false),
-  SIG_input(false),
-  status(HEADER)
+  SIG_input(false)
 {
   this->path = path;
 
   testBlockAppendFile.open(path + "AUTOGEN_testBlock.m", std::ofstream::out);
   if (!testBlockAppendFile.is_open())
     throw "Error opening AUTOGEN_testBlock.m";
-
-  testBlockRoutingAppendFile.open(path + "AUTOGEN_testBlockRouting.m", std::ofstream::out);
-  if (!testBlockRoutingAppendFile.is_open())
-    throw "Error opening AUTOGEN_testBlockRouting.m";
 }
 
 STLdriver::~STLdriver()
 {
   testBlockAppendFile.close();
-  testBlockRoutingAppendFile.close();
 
   for (auto n : nodes)
     delete n;
@@ -84,23 +78,6 @@ void STLdriver::testBlockAppendLn(const std::string &fileName,
   testBlockAppendFile << std::endl;
 }
 
-void STLdriver::testBlockRoutingAppendLn(const std::string &fileName,
-                                         const std::string &functionName,
-                                         int lineNumber,
-                                         const std::string &s)
-{
-  fileAppend("% " + fileName + "::" + functionName + "::" + std::to_string(lineNumber), testBlockRoutingAppendFile);
-  //std::cout << std::endl;
-  testBlockRoutingAppendFile << std::endl;
-
-  fileAppend(s, testBlockRoutingAppendFile);
-  //std::cout << std::endl;
-  testBlockRoutingAppendFile << std::endl;
-
-  //std::cout << std::endl;
-  testBlockRoutingAppendFile << std::endl;
-}
-
 void STLdriver::createDiffBlock(std::string v)
 {
   std::cout << "createDiffBlock [" + v + "]" << std::endl;
@@ -124,11 +101,6 @@ void STLdriver::setVariable(std::string name, std::string value)
 std::string STLdriver::getVariable(std::string name)
 {
   return variablesValues[name];
-}
-
-void STLdriver::setStatus(DriverStatus s)
-{
-  status = s;
 }
 
 void STLdriver::printConstantValues()
