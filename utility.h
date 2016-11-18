@@ -23,23 +23,16 @@ public:
     if ( (li != "[" && li != "(") || (ri != "]" && ri != ")") )
       throw "Wrong interval delimiter";
 
-    if (li == "(")
-      startClosed = "off";
-    else
-      startClosed = "on";
-
-    if (ri == ")")
-      endClosed = "off";
-    else
-      endClosed = "on";
+    startClosed = (li == "[");
+    endClosed = (ri == "]");
   }
 
   TimeInterval() {}
 
   std::string start;
   std::string end;
-  std::string startClosed;
-  std::string endClosed;
+  bool startClosed;
+  bool endClosed;
 };
 
 std::ostream& operator<<(std::ostream& os, const TimeInterval &obj);

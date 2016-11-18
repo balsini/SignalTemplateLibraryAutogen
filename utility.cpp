@@ -516,7 +516,7 @@ blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent
   if (_tSet) {
     ti = d->createTimeInterval(_t, name);
   } else {
-    TimeInterval t("[", "0", "X", "]");
+    TimeInterval t("[", "0", "inf", "]");
     ti = d->createTimeInterval(t, name);
   }
 

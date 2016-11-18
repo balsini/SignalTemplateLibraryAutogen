@@ -253,13 +253,53 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
 
   // Output port
   testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 40]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT, 'position',[320, 20, 340, 40]);");
 
   // Clock
   testBlockAppendLn(SRC_INFO_TEMP, name + "_CLOCK = add_block('simulink/Sources/Clock', [" + name + " '/CLOCK']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CLOCK, 'position',[" + std::to_string(position_X_IN[0])+ ", 20, " + std::to_string(position_X_IN[1])+ ", 40]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CLOCK, 'position',[" + std::to_string(position_X_IN[0])+ ", 60, " + std::to_string(position_X_IN[1])+ ", 80]);");
+
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_START = add_block('simulink/Sources/Constant', [" + name + " '/START']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_START, 'Value', '" + time.start + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_START, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_END = add_block('simulink/Sources/Constant', [" + name + " '/END']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_END, 'Value', '" + time.end + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_END, 'position',[" + std::to_string(position_X_EXP[0])+ ", 100, " + std::to_string(position_X_EXP[1])+ ", 120]);");
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_REL1 = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + name + " '/REL1']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL1,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+
+  if (time.startClosed)
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL1,'Operator', '<=');");
+  else
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL1,'Operator', '<');");
+
+  createLine(SRC_INFO, name + "_START", name + "_REL1", name);
+  createLine(SRC_INFO, name + "_CLOCK", name + "_REL1", name, 1, 2);
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_REL2 = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + name + " '/REL2']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL2,'position',[" + std::to_string(position_X_OP[0])+ ", 100, " + std::to_string(position_X_OP[1])+ ", 120]);");
+
+  if (time.endClosed)
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL2,'Operator', '<=');");
+  else
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL2,'Operator', '<');");
+
+  createLine(SRC_INFO, name + "_END", name + "_REL2", name, 1, 2);
+  createLine(SRC_INFO, name + "_CLOCK", name + "_REL2", name);
+
+  testBlockAppendLn(SRC_INFO_TEMP, name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/AND']);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'Operator', '" + "AND" + "');");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'position',[260, 20, 280, 40]);");
+
+  createLine(SRC_INFO, name + "_REL1", name + "_AND", name);
+  createLine(SRC_INFO, name + "_REL2", name + "_AND", name, 1, 2);
+  createLine(SRC_INFO, name + "_AND", name + "_OUT", name);
 
   // Interval checker
+  /*
   testBlockAppendLn(SRC_INFO_TEMP, name + "_CHECK = add_block('simulink/Logic and Bit Operations/Interval Test', [" + name + " '/CHECK']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CHECK, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CHECK, 'uplimit', '" + time.end + "');");
@@ -270,6 +310,7 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
   // Connect internals
   createLine(SRC_INFO, name + "_CLOCK", name + "_CHECK", name);
   createLine(SRC_INFO, name + "_CHECK", name + "_OUT", name);
+  */
 
   return name;
 }
@@ -362,8 +403,7 @@ blockPortMapping STLdriver::createSTLFormulas()
 
   unsigned int counter = 0;
   for (TreeNode * n : nodes) {
-    std::string name = "Predicate_" + std::to_string(counter);
-    std::cout << std::endl << name << std::endl;
+    std::cout << std::endl << "Predicate_" << std::to_string(counter) << std::endl;
 
     blockPortMapping bm = n->generate(this, name, counter);
 
