@@ -422,7 +422,35 @@ blockPortMapping STLdriver::createSTLFormulas()
 
 void STLdriver::linkSTLFormulas(const blockPortMapping &bpm)
 {
+  std::string name = "ROOT";
+
   std::cerr << "Running linkSTLFormulas" << std::endl;
+
+  testBlockAppendLn(SRC_INFO_TEMP, "BLOCKS = find_system(SYSTEM,'SearchDepth',1);");
+  testBlockAppendLn(SRC_INFO_TEMP, "SRC_PORT_REL_POSITIONING = [20 -25 35 -10];");
+
+  for (auto p : std::get<1>(bpm)) {
+    std::cerr << p.first << std::endl;
+
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC = add_block('simulink/Signal Routing/Goto', [SYSTEM '/" + std::get<0>(p) + "SRC']);");
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC_PORT = getSourcePortHandleOfSignal(SYSTEM, BLOCKS, '" + p.first + "');");
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC_POS = get_param(" + std::get<0>(p) + "_SRC_PORT, 'position');");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(p) + "_SRC,'position',["
+                      + std::get<0>(p) + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(1) "
+                      + std::get<0>(p) + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(2) "
+                      + std::get<0>(p) + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(3) "
+                      + std::get<0>(p) + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(4)"
+                      + "]);");
+
+    testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + std::get<0>(p) + "_SRC, 'PortHandles');");
+    testBlockAppendLn(SRC_INFO_TEMP, "add_line(SYSTEM, " + std::get<0>(p) + "_SRC_PORT, InPort1.Inport(1), 'autorouting','on');");
+
+
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_DST = add_block('simulink/Signal Routing/From', [SYSTEM '/" + std::get<0>(p) + "DST']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(p) + "_DST,'position',ROOT_POSITION - [40 0 40 0]);");
+
+    createLine(SRC_INFO, p.first + "_DST", std::get<0>(bpm), "SYSTEM", 1, p.second);
+  }
 }
 
 void STLdriver::parsePorts()

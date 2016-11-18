@@ -63,6 +63,7 @@ min = stepSize - range;
 
 //[]_[1,2] { TRUE U FALSE };
 []_[T0, T1] { <> { isStep(SIGA, stepSize) }};
+[]_[T0, T1] { <> { isStep(REFA, stepSize) }};
 
 //[]_[T0, T1] { isStep(REFA, stepSize) && TRUE };
 
