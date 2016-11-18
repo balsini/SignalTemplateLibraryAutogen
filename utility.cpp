@@ -418,7 +418,7 @@ blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &pare
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
 
-  std::cout << "TODO - Generating ";
+  std::cout << "Generating ";
   if (_tSet)
     std::cout << "Timed ";
   std::cout << "STLFormulaUNTIL" << std::endl;
