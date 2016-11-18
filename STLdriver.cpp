@@ -422,35 +422,47 @@ blockPortMapping STLdriver::createSTLFormulas()
 
 void STLdriver::linkSTLFormulas(const blockPortMapping &bpm)
 {
+  unsigned int counter = 0;
   std::string name = "ROOT";
+  unsigned int number_of_ports = std::get<1>(bpm).size();
 
-  std::cerr << "Running linkSTLFormulas" << std::endl;
+  std::cout << "Generating STLFormulas links to model" << std::endl;
 
   testBlockAppendLn(SRC_INFO_TEMP, "BLOCKS = find_system(SYSTEM,'SearchDepth',1);");
-  testBlockAppendLn(SRC_INFO_TEMP, "SRC_PORT_REL_POSITIONING = [20 -25 35 -10];");
+  testBlockAppendLn(SRC_INFO_TEMP, "SRC_PORT_REL_POSITIONING = [20 -30 35 -15];");
+
+  std::string portHeight = "((ROOT_POSITION(4) - ROOT_POSITION(2)) / " + std::to_string(number_of_ports) + ")";
 
   for (auto p : std::get<1>(bpm)) {
-    std::cerr << p.first << std::endl;
+    std::cout << " - " << p.first << std::endl;
 
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC = add_block('simulink/Signal Routing/Goto', [SYSTEM '/" + std::get<0>(p) + "SRC']);");
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC_PORT = getSourcePortHandleOfSignal(SYSTEM, BLOCKS, '" + p.first + "');");
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_SRC_POS = get_param(" + std::get<0>(p) + "_SRC_PORT, 'position');");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(p) + "_SRC,'position',["
-                      + std::get<0>(p) + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(1) "
-                      + std::get<0>(p) + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(2) "
-                      + std::get<0>(p) + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(3) "
-                      + std::get<0>(p) + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(4)"
+    testBlockAppendLn(SRC_INFO_TEMP, p.first + "_SRC = add_block('simulink/Signal Routing/Goto', [SYSTEM '/" + p.first + "_SRC']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + p.first + "_SRC,'GotoTag','" + p.first + "');");
+    testBlockAppendLn(SRC_INFO_TEMP, p.first + "_SRC_PORT = getSourcePortHandleOfSignal(SYSTEM, BLOCKS, '" + p.first + "');");
+    testBlockAppendLn(SRC_INFO_TEMP, p.first + "_SRC_POS = get_param(" + p.first + "_SRC_PORT, 'position');");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + p.first + "_SRC,'position',["
+                      + p.first + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(1) , "
+                      + p.first + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(2) , "
+                      + p.first + "_SRC_POS(1) + SRC_PORT_REL_POSITIONING(3) , "
+                      + p.first + "_SRC_POS(2) + SRC_PORT_REL_POSITIONING(4)"
                       + "]);");
 
-    testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + std::get<0>(p) + "_SRC, 'PortHandles');");
-    testBlockAppendLn(SRC_INFO_TEMP, "add_line(SYSTEM, " + std::get<0>(p) + "_SRC_PORT, InPort1.Inport(1), 'autorouting','on');");
+    testBlockAppendLn(SRC_INFO_TEMP, "InPort1 = get_param(" + p.first + "_SRC, 'PortHandles');");
+    testBlockAppendLn(SRC_INFO_TEMP, "add_line(SYSTEM, " + p.first + "_SRC_PORT, InPort1.Inport(1), 'autorouting','on');");
 
+    std::string portHeight0 = "(" + portHeight + " * " + std::to_string(p.second - 1) + ")";
+    std::string portHeight1 = "(" + portHeight + " * " + std::to_string(p.second) + ")";
 
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(p) + "_DST = add_block('simulink/Signal Routing/From', [SYSTEM '/" + std::get<0>(p) + "DST']);");
-    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(p) + "_DST,'position',ROOT_POSITION - [40 0 40 0]);");
+    testBlockAppendLn(SRC_INFO_TEMP, p.first + "_DST = add_block('simulink/Signal Routing/From', [SYSTEM '/" + p.first + "_DST']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + p.first + "_DST,'position',[ROOT_POSITION(1) - 60 , ROOT_POSITION(2) + " + portHeight0 + " ROOT_POSITION(1) - 30 ROOT_POSITION(2) + " + portHeight1 + "]);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + p.first + "_DST,'GotoTag','" + p.first + "');");
 
     createLine(SRC_INFO, p.first + "_DST", std::get<0>(bpm), "SYSTEM", 1, p.second);
+
+    counter++;
   }
+
+
 }
 
 void STLdriver::parsePorts()
