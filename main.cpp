@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     res = driver.parse(argv[1]);
 
     std::cout << std::endl << "Parser results: " << res << std::endl;
-  } catch (std::string e) {
+  } catch (const char *e) {
     std::cout << e << std::endl;
   }
 
