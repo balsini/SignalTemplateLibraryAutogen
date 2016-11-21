@@ -31,5 +31,6 @@
 *.user
 
 *AUTOGEN_testBlock.m
+*AUTOGEN_portList.txt
 [Bb]uild
 
