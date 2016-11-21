@@ -81,9 +81,7 @@ public:
     delete right;
     right = nullptr;
   }
-  virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos) {
-    std::cout << "ERROR: code generation not yet implemented in the child node" << std::endl;
-  }
+  virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos) = 0;
 };
 
 class STLFormula : public TreeNode {

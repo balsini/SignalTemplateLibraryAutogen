@@ -11,9 +11,6 @@ find_package(FLEX)
 BISON_TARGET(STLParser STLparser.yy ${CMAKE_CURRENT_BINARY_DIR}/STLparser.cc COMPILE_FLAGS "--report=all --graph")
 FLEX_TARGET(STLScanner STLscanner.ll ${CMAKE_CURRENT_BINARY_DIR}/STLscanner.cc)
 
-message("Bison output src files: " ${BISON_STLParser_OUTPUTS})
-message("Flex output src files: " ${FLEX_STLScanner_OUTPUTS})
-
 ADD_FLEX_BISON_DEPENDENCY(STLScanner STLParser)
 
 add_executable(${PROJECT_NAME}

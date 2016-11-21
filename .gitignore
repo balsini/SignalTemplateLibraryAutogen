@@ -29,3 +29,7 @@
 *.app
 
 *.user
+
+*AUTOGEN_testBlock.m
+[Bb]uild
+
