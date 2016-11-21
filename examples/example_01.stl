@@ -1,71 +1,28 @@
-///////////////////////////////////
-// Definition of constant values //
-///////////////////////////////////
+/*********************************
+ * Definition of constant values *
+ *********************************/
 
-T0 = 0.5;
-T1 = 1.5;
-T4 = T3 = T2 = 4;
-
-stepSize = 5;
-range = 2;
-
-max = stepSize + range;
-min = stepSize - range;
-
-//////////////////////////////
-// Definition of assertions //
-//////////////////////////////
-
-//[] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
-
-/* [] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min)); */
-
-/*
-[] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
-[] [0.1 , 2] ( [] [0.1 , 2] (x < max) && (x > min));
-[] (0 , T] (SIG - REF < max);
-*/
+T0 = 0;
+SimulationEnd = 4;
+StepTime = 1;
+MaxOvershoot = 2.5;
+SettlingTime = 1.7;
+T_rise = 0.25;
 
 %%
 
-//[] [0 , T] (isStep(SIGA, stepSize) && SIGA - REFA < max);
+/******************************
+ * Definition of STL Formulas *
+ ******************************/
 
-//[] (0 , T] (REFA + 1 < 2 * (3 + SIGA) && (SIGA > 5 || SIGA < 6));
-//[] (0 , T] (SIGA < 11 && SIGA >= 0);
-//[] (0 , T] (SIGA < 11 && SIGA >= 0);
-//<> [1 , 2] (SIGA < 5);
-//[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
-//[] [0 , 4] (SIGA < 100 + 3 * 2 && REFA < 100 + 3 * 2);
-//[] [0 , 4] (SIGA < 20);
-//[] [0 , 4] (REFA < 5 U SIGA < 100 && REFA > 0 && REFA < 11);
-//[] [0 , 4] (REFA < 5 && <> [0,1] SIGA < 100);
+// Rise Time
+<>_[StepTime, StepTime + SettlingTime] { SIGA < 0.9 * REFA };
 
+// Overshoot
+[]_[StepTime, SimulationEnd] { SIGA < REFA + MaxOvershoot };
 
-// STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLForall | STLEventually
-// STLForall : [] {TIME} STLFormula
-// STLEventually : <> {TIME} STLFormula
-// STLUntil : STLFormula U {TIME} STLFormula
+// SettlingTime
+[]_[StepTime + SettlingTime, SimulationEnd] { abs(SIGA - REFA) < 0.3 };
 
-// Expr : VAL [+,*,-,/] VAL
-// CmpExpr : Expr [>= | < | ...] Expr
-// BoolExpr : CmpExpr | boolFunction | TRUE | FALSE
-
-
-//TRUE && 1 < 2 + 3 * 4;
-//SIGA < 1 + 100 * 2 && REFA >= 0 && isStep(REFA, 3);
-//isStep(1,2);
-
-//<> { isStep(SIGA, stepSize) U_[0,1] <>_[T0, T1] { isStep(SIGA, stepSize)} };
-
-//[]_[0,2] { abs(SIGA - 5) < 10 };
-//[]_[0,2] { diff(REFA) < 10 };
-//! ([]_[0,2] { []_[0,1] { FALSE } && []_[0,1] { FALSE } } ); // TODO
-
-//[]_[1,2] { TRUE U FALSE };
-[]_[T0, T1] { <> { isStep(SIGA, stepSize) }};
-[]_[T0, T1] { <> { isStep(REFA, stepSize) }};
-
-//[]_[T0, T1] { isStep(REFA, stepSize) && TRUE };
-
-
-//[] { isStep(REFA, stepSize) && TRUE };
+// Steady state error
+[]_[SimulationEnd, SimulationEnd] { abs(SIGA - REFA) < 0.1 };
