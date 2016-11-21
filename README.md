@@ -115,8 +115,8 @@ Run the SignalTemplateLibraryAutogen passing as first parameter the desired
 STL file and as second parameter the path containing the 
 `AUTOGEN_portList.txt` file.
 
-Remember to add the `"/"` (or `"\"` on Windows) marker for the 
-`AUTOGEN_portList.txt` path.
+Remember to close the `AUTOGEN_portList.txt` path with the proper `"/"` (or
+`"\"` on Windows) marker.
 
 >  .\SignalTemplateLibraryAutogen.exe \
 >  C:\{something}\SignalTemplateLibraryAutogen\examples\example_01.stl \
