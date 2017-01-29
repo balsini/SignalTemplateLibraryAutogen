@@ -26,7 +26,48 @@ SUMMARY
 
 ## 1. Introduction
 
-TODO
+
+### 1.1 Language structure and syntax
+
+#### STL formulas structure
+
+| Id | Is |
+| ---           | ---    |
+| STLFormula    | BoolExpr \| !STLFormula \| STLFormula AND STLFormula \| STLUntil \| STLAlways \| STLEventually |
+| STLAlways     | []_TimeExpr STLFormula |
+| STLEventually | <>_TimeExpr STLFormula      |
+| STLUntil      | STLFormula U_TimeExpr STLFormula      |
+
+#### Expressions
+
+| Id | Is |
+| ---        | ---    |
+| TimeExpr   | [Expr, Expr] |
+| Expr       | Val \| Expr ExprOp Val |
+| CmpExpr    | Expr CmpOp Expr |
+| BoolExpr   | CmpExpr \| BoolExpr BoolOp BoolExpr \| BoolFunction \| BoolVal | 
+
+#### Operators
+
+| Id | Is |
+| ---        | ---    |
+| ExprOp     | \+ \| - \| * \| / |
+| CmpOp      | \> \| < \| >= \| <= \| == \| != |
+| BoolOp     | && \| \|\| |
+
+#### Values
+
+
+| Id | Is |
+| ---        | ---    |
+| BoolVal    | TRUE \| FALSE |
+| Val        | ConstantValue \| ModelSignal |
+
+#### Functions
+
+| Id | Is |
+| ---          | ---    |
+| BoolFunction | isStep() ...|
 
 ## 2. System Requirements
 
@@ -94,8 +135,6 @@ The steps to build the software are the usual ones:
 
 The following sections describe how to add a probe to the example simulink 
 model `\Matlab\SimulinkModelExample.slx`.
-
-Open Matlab and add 
 
 ### 4.1 Generating the ports
 
