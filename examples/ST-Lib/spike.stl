@@ -1,0 +1,19 @@
+/* This example takes as reference the formulas 
+ * provided by the ST-Lib paper.
+ */
+
+/*********************************
+ * Definition of constant values *
+ *********************************/
+
+T = 6;
+m = 10;
+w = 0.5;
+
+%%
+
+/******************************
+ * Definition of STL Formulas *
+ ******************************/
+
+<>_[0, T]((x_diff > m) AND <>_[0,w](x_diff < -m));
