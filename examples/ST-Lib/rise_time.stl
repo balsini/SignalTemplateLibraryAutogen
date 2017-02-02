@@ -1,0 +1,21 @@
+/* This example takes as reference the formulas 
+ * provided by the ST-Lib paper.
+ */
+
+/*********************************
+ * Definition of constant values *
+ *********************************/
+
+T = 10;
+r = 5;
+zeta = 1.0;
+mu = 0.8;
+x_1_star = 10.0;
+
+%%
+
+/******************************
+ * Definition of STL Formulas *
+ ******************************/
+
+<>_[0, T](step(x_ref,r) AND []_[0,zeta](x_1 < mu * x_1_star));

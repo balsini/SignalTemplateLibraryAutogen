@@ -1,0 +1,19 @@
+/* This example takes as reference the formulas 
+ * provided by the ST-Lib paper.
+ */
+
+/*********************************
+ * Definition of constant values *
+ *********************************/
+
+T = 2.4;
+r = 5;
+c = 2.5;
+
+%%
+
+/******************************
+ * Definition of STL Formulas *
+ ******************************/
+
+<>_[0, T](step(x_ref,r) AND <>(x-x_ref > c));
