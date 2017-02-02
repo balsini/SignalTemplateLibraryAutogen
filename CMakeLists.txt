@@ -28,9 +28,7 @@ target_compile_features(SignalTemplateLibraryAutogen PRIVATE cxx_range_for)
 
 enable_testing(true)
 
-set(STL_TEST_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/test/test_stl.stl\")
 set(TEST_FOLDER \"${CMAKE_CURRENT_SOURCE_DIR}/test/\")
-add_definitions(-DSTL_TEST_FILE=${STL_TEST_FILE})
 add_definitions(-DTEST_FOLDER=${TEST_FOLDER})
 
 set (TEST_LIBRARY ${PROJECT_NAME}_test)

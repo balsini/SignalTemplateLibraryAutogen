@@ -1,0 +1,21 @@
+
+%%
+
+<>_[0, 1] { TRUE AND FALSE };
+<>_[0, 1] { isStep(1, 1) AND TRUE };
+
+[]_[0, 1] { TRUE AND FALSE };
+[]_[0, 1] { isStep(1, 1) AND TRUE };
+
+[] { TRUE AND <> { FALSE } };
+[] { isStep(1, 1) AND  [] { TRUE } };
+
+[] { TRUE AND <>_[1, 2] { FALSE } };
+[] { isStep(1, 1) AND  []_[1,2] { TRUE } };
+
+<> { TRUE AND <>_[1, 2] { FALSE } };
+<> { isStep(1, 1) AND  []_[1,2] { TRUE } };
+
+<> { TRUE U FALSE };
+<> { isStep(1, 1) U_[1,2] TRUE};
+<> { isStep(1, 1) U_[1,2] (TRUE || FALSE)};

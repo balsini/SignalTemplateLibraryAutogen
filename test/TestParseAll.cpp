@@ -4,22 +4,44 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
-TEST_CASE("Load and try to parse the test file")
+#if 0
+TEST_CASE("Load and try to parse boolean file")
 {
-  std::cout << STL_TEST_FILE << std::endl;
-  std::cout << TEST_FOLDER << std::endl;
+  std::cout << "Test folder: " << TEST_FOLDER << std::endl;
 
   int res = 0;
-  STLdriver driver(STL_TEST_FILE);
+
+  STLdriver driver(TEST_FOLDER);
 
   driver.parsePorts();
 
-  driver.trace_scanning = true;
+  //driver.trace_scanning = true;
   driver.trace_parsing = true;
 
-  res = driver.parse(TEST_FOLDER);
+  res = driver.parse(TEST_FOLDER + std::string("test_stl_01.stl"));
 
-  std::cout << std::endl << "Parser results: " << res << std::endl;
-  REQUIRE(1 == 1);
+  REQUIRE(res == 0);
 }
+#else
+
+TEST_CASE("Load and try to parse AND file")
+{
+  std::cout << "Test folder: " << TEST_FOLDER << std::endl;
+
+  int res = 0;
+
+  STLdriver driver(TEST_FOLDER);
+
+  driver.parsePorts();
+
+  //driver.trace_scanning = true;
+  driver.trace_parsing = true;
+
+  res = driver.parse(TEST_FOLDER + std::string("test_stl_02.stl"));
+
+  REQUIRE(res == 0);
+}
+
+#endif

@@ -5,32 +5,32 @@ Tef =  1.1;
 
 %%
 
-<> TRUE;
-<> (TRUE);
-<> (FALSE);
-<> ((FALSE));
+<> { TRUE };
+<> { (TRUE) };
+<> { (FALSE) };
+<> { ((FALSE)) };
 
-[] (FALSE);
-[] (TRUE);
+[] { (FALSE) };
+[] { TRUE };
 
-<>_[Ts, Te] (TRUE);
-<>_[Tsf, Tef] (FALSE);
+<>_[Ts, Te] { TRUE };
+<>_[Tsf, Tef] { (FALSE) };
 
-[]_[Ts, Te] (FALSE);
-[]_[Tsf, Tef] (TRUE);
+[]_[Ts, Te] { (FALSE) };
+[]_[Tsf, Tef] { (TRUE) };
 
-[] (FALSE && TRUE);
-[] (FALSE || TRUE);
-[] (FALSE || TRUE && FALSE);
+[] { (FALSE && TRUE) };
+[] { (FALSE || TRUE) };
+[] { (FALSE || TRUE && FALSE) };
 
 
-[] (1 > 2);
-[] (1 < 2);
-[] (1 <= 2);
-[] (1 <= 2);
-[] (1 == 2);
-[] (1 != 2 - 1);
+[] { 1 > 2 };
+[] { 1 < 2 };
+[] { 1 <= 2 };
+[] { 1 <= 2 };
+[] { 1 == 2 };
+[] { 1 != 2 - 1 };
 
-[] (FALSE || 1 < 2);
-[] (FALSE || 1 < 2 && TRUE);
-[] (FALSE || 1 < 2 && TRUE && isStep(Ts, Te));
+[] { FALSE || 1 < 2 };
+[] { FALSE || 1 < 2 && TRUE };
+[] { FALSE || 1 < 2 && TRUE && isStep(Ts, Te) };

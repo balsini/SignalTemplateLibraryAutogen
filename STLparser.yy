@@ -59,6 +59,8 @@ LRPAREN     "("
 RRPAREN     ")"
 LSPAREN     "["
 RSPAREN     "]"
+LCPAREN     "{"
+RCPAREN     "}"
 ;
 
 %token
@@ -68,6 +70,7 @@ EVENTUALLY  "<>"
 EVENTUALLYT "<>_"
 UNTIL       "U"
 UNTILT      "U_"
+ANDSTL      "AND"
 ;
 
 %token
@@ -93,36 +96,55 @@ FALSE       "FALSE"
 %precedence NEG
 
 
+%type  <std::string>            lparen
+%type  <std::string>            rparen
 
 %token <std::string>            VAR   "identifier"
 %token <std::string>            INUM  "integer number"
 %token <std::string>            FNUM  "floating point number"
 
+%type  <std::string>            assignment
 %type  <std::string>            exp
 %type  <std::string>            exp2
+
+%type  <BooleanExpression *>    BoolExpr
+%type  <LogicalOperator>        BoolOp
+%type  <ComparisonExpression *> CmpExp
+%type  <ComparisonOperator>     CmpOp
 
 %type  <Expression *>           expWP
 %type  <Expression *>           expWP1
 %type  <Expression *>           expWP2
 %type  <Expression *>           expWP3
-%type  <ComparisonExpression *> cmp
-%type  <BooleanExpression *>    BoolExpr
-%type  <LogicalOperator>        boolOp
-%type  <ComparisonOperator>     cmpOp
-%type  <std::string>            assignment
+
 %type  <STLFormula *>           STLFormula
+
 %type  <STLFormula *>           STLAlways
 %type  <STLFormula *>           STLEventually
 %type  <STLFormula *>           STLUntil
 %type  <STLFormula *>           STLAnd
 %type  <STLFormula *>           STLNeg
 %type  <TimeInterval>           time_range
-%type  <std::string>            lparen
-%type  <std::string>            rparen
 
 %printer { yyoutput << $$; } <*>;
 
 %% /*------------------------------------------------------------------------*/
+
+/*
+ *   **********************
+ *   * Language structure *
+ *   **********************
+ *
+ * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLAlways | STLEventually
+ * STLAlways : [] {TIME} STLFormula
+ * STLEventually : <> {TIME} STLFormula
+ * STLUntil : STLFormula U {TIME} STLFormula
+ *
+ * Expr : VAL [+ | * | - | /] VAL
+ * CmpExpr : Expr [>= | < | ...] Expr
+ * BoolExpr : CmpExpr | BoolExpr [&& | ||] BoolExpr | boolFunction | TRUE | FALSE
+ *
+ */
 
 parser:
 header  {
@@ -154,24 +176,24 @@ assignment   SEMICOLON
 ;
 
 assignment:
-VAR ASSIGN exp             {
+VAR "=" exp             {
     $$ = $1;
     driver.setVariable($1, $3);
 }
-| VAR ASSIGN assignment    {
+| VAR "=" assignment    {
     $$ = $1 + " = " + $3;
     driver.setVariable($1, driver.getVariable($3));
 }
 ;
 
 exp:
-LRPAREN exp RRPAREN     {
+"(" exp ")"     {
     $$ = "(" + $2 + ")";
 }
-| exp PLUS exp   {
+| exp "+" exp   {
     $$ = $1 + "+" + $3;
 }
-| exp MINUS exp   {
+| exp "-" exp   {
     $$ = $1 + "-" + $3;
 }
 | exp2          {
@@ -180,10 +202,10 @@ LRPAREN exp RRPAREN     {
 ;
 
 exp2:
-exp STAR exp     {
+exp "*" exp     {
     $$ = $1 + "*" + $3;
 }
-| exp SLASH exp   {
+| exp "/" exp   {
     $$ = $1 + "/" + $3;
 }
 | FNUM          {
@@ -215,7 +237,7 @@ body:
 ;
 
 body_line:
-STLFormula SEMICOLON    {
+STLFormula   SEMICOLON  {
     driver.addSTLFormula($1);
 }
 ;
@@ -229,32 +251,62 @@ BoolExpr        { $$ = $1; }
 | STLNeg        { $$ = $1; }
 ;
 
+BoolExpr:
+"(" BoolExpr ")"                                    {
+    $$ = $2;
+}
+| BoolExpr BoolOp BoolExpr                          {
+    $$ = new BooleanOperation($2, $1, $3);
+}
+| CmpExp                                            {
+    $$ = $1;
+}
+| ISSTEP "(" expWP COMMA expWP ")"                  {
+    $$ = new isStepFunction($3, $5);
+}
+| TRUE                                              {
+    $$ = new BooleanValue(true);
+}
+| FALSE                                             {
+    $$ = new BooleanValue(false);
+}
+;
+
+BoolOp:
+AND     {
+    $$ = AND;
+}
+| OR    {
+    $$ = OR;
+}
+;
+
 STLNeg:
-NOT LRPAREN STLFormula RRPAREN  {
+"!" "(" STLFormula ")"  {
     $$ = new STLFormulaNOT($3);
 }
 ;
 
 STLAnd:
-STLFormula AND STLFormula              {
+STLFormula ANDSTL STLFormula              {
     $$ = new STLFormulaAND($1, $3);
 }
 ;
 
 STLAlways:
-ALWAYST time_range LRPAREN STLFormula RRPAREN {
+ALWAYST time_range LCPAREN STLFormula RCPAREN {
     $$ = new STLAlways($2, $4);
 }
-| ALWAYS LRPAREN STLFormula RRPAREN                 {
+| ALWAYS LCPAREN STLFormula RCPAREN                 {
     $$ = new STLAlways($3);
 }
 ;
 
 STLEventually:
-EVENTUALLYT time_range LRPAREN STLFormula RRPAREN    {
+EVENTUALLYT time_range LCPAREN STLFormula RCPAREN    {
     $$ = new STLEventually($2, $4);
 }
-| EVENTUALLY LRPAREN STLFormula RRPAREN            {
+| EVENTUALLY LCPAREN STLFormula RCPAREN            {
     $$ = new STLEventually($3);
 }
 ;
@@ -268,46 +320,16 @@ STLFormula UNTILT time_range STLFormula {
 }
 ;
 
-BoolExpr:
-LRPAREN BoolExpr RRPAREN                                    {
+CmpExp:
+"(" CmpExp ")"         {
     $$ = $2;
 }
-| BoolExpr boolOp BoolExpr                          {
-    $$ = new BooleanOperation($2, $1, $3);
-}
-| cmp                                               {
-    $$ = $1;
-}
-| ISSTEP LRPAREN expWP COMMA expWP RRPAREN                  {
-    $$ = new isStepFunction($3, $5);
-}
-| TRUE                                              {
-    $$ = new BooleanValue(true);
-}
-| FALSE                                             {
-    $$ = new BooleanValue(false);
-}
-;
-
-cmp:
-LRPAREN cmp RRPAREN         {
-    $$ = $2;
-}
-| expWP cmpOp expWP {
+| expWP CmpOp expWP {
     $$ = new ComparisonExpression($2, $1, $3);
 }
 ;
 
-boolOp:
-AND     {
-    $$ = AND;
-}
-| OR    {
-    $$ = OR;
-}
-;
-
-cmpOp:
+CmpOp:
 GEQ         {
     $$ = GEQ;
 }
@@ -332,16 +354,16 @@ expWP:
 expWP1              {
     $$ = $1;
 }
-| ABS LRPAREN expWP RRPAREN {
+| ABS "(" expWP ")" {
     $$ = new ExpressionFunction(ABS, $3);
 }
-| DIFF LRPAREN expWP RRPAREN {
+| DIFF "(" expWP ")" {
     $$ = new ExpressionFunction(DIFF, $3);
 }
 ;
 
 expWP1: // Expressions plus external ports
-LRPAREN expWP1 RRPAREN      {
+"(" expWP1 ")"      {
     $$ = $2;
 }
 | expWP1 "+" expWP1 {
