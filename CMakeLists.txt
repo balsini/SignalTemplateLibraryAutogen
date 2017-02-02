@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 
 project(SignalTemplateLibraryAutogen)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 include_directories(.)
 include_directories(test)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
