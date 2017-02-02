@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 
     driver.parsePorts();
 
-    //driver.trace_scanning = true;
-    //driver.trace_parsing = true;
+    driver.trace_scanning = true;
+    driver.trace_parsing = true;
 
     res = driver.parse(argv[1]);
 

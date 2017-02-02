@@ -60,8 +60,6 @@ blank [ \t]
 ")"   return yy::STLparser::make_RRPAREN(loc);
 "["   return yy::STLparser::make_LSPAREN(loc);
 "]"   return yy::STLparser::make_RSPAREN(loc);
-"{"   return yy::STLparser::make_LCPAREN(loc);
-"}"   return yy::STLparser::make_RCPAREN(loc);
 
 ">="  return yy::STLparser::make_GEQ(loc);
 "<="  return yy::STLparser::make_LEQ(loc);

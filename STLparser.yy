@@ -59,8 +59,6 @@ LRPAREN     "("
 RRPAREN     ")"
 LSPAREN     "["
 RSPAREN     "]"
-LCPAREN     "{"
-RCPAREN     "}"
 ;
 
 %token
@@ -126,22 +124,6 @@ FALSE       "FALSE"
 
 %% /*------------------------------------------------------------------------*/
 
-/*
- *   **********************
- *   * Language structure *
- *   **********************
- *
- * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLAlways | STLEventually
- * STLAlways : [] {TIME} STLFormula
- * STLEventually : <> {TIME} STLFormula
- * STLUntil : STLFormula U {TIME} STLFormula
- *
- * Expr : VAL [+ | * | - | /] VAL
- * CmpExpr : Expr [>= | < | ...] Expr
- * BoolExpr : CmpExpr | BoolExpr [&& | ||] BoolExpr | boolFunction | TRUE | FALSE
- *
- */
-
 parser:
 header  {
     std::cout << "## Header DONE ##" << std::endl;
@@ -172,24 +154,24 @@ assignment   SEMICOLON
 ;
 
 assignment:
-VAR "=" exp             {
+VAR ASSIGN exp             {
     $$ = $1;
     driver.setVariable($1, $3);
 }
-| VAR "=" assignment    {
+| VAR ASSIGN assignment    {
     $$ = $1 + " = " + $3;
     driver.setVariable($1, driver.getVariable($3));
 }
 ;
 
 exp:
-"(" exp ")"     {
+LRPAREN exp RRPAREN     {
     $$ = "(" + $2 + ")";
 }
-| exp "+" exp   {
+| exp PLUS exp   {
     $$ = $1 + "+" + $3;
 }
-| exp "-" exp   {
+| exp MINUS exp   {
     $$ = $1 + "-" + $3;
 }
 | exp2          {
@@ -198,10 +180,10 @@ exp:
 ;
 
 exp2:
-exp "*" exp     {
+exp STAR exp     {
     $$ = $1 + "*" + $3;
 }
-| exp "/" exp   {
+| exp SLASH exp   {
     $$ = $1 + "/" + $3;
 }
 | FNUM          {
@@ -233,7 +215,7 @@ body:
 ;
 
 body_line:
-STLFormula   SEMICOLON  {
+STLFormula SEMICOLON    {
     driver.addSTLFormula($1);
 }
 ;
@@ -248,7 +230,7 @@ BoolExpr        { $$ = $1; }
 ;
 
 STLNeg:
-"!" "(" STLFormula ")"  {
+NOT LRPAREN STLFormula RRPAREN  {
     $$ = new STLFormulaNOT($3);
 }
 ;
@@ -260,34 +242,34 @@ STLFormula AND STLFormula              {
 ;
 
 STLAlways:
-ALWAYST time_range "{" STLFormula "}" {
+ALWAYST time_range LRPAREN STLFormula RRPAREN {
     $$ = new STLAlways($2, $4);
 }
-| ALWAYS "{" STLFormula "}"                 {
+| ALWAYS LRPAREN STLFormula RRPAREN                 {
     $$ = new STLAlways($3);
 }
 ;
 
 STLEventually:
-EVENTUALLYT time_range "{" STLFormula "}"    {
+EVENTUALLYT time_range LRPAREN STLFormula RRPAREN    {
     $$ = new STLEventually($2, $4);
 }
-| EVENTUALLY "{" STLFormula "}"            {
+| EVENTUALLY LRPAREN STLFormula RRPAREN            {
     $$ = new STLEventually($3);
 }
 ;
 
 STLUntil:
-STLFormula "U_" time_range STLFormula {
+STLFormula UNTILT time_range STLFormula {
     $$ = new STLFormulaUNTIL($3, $1, $4);
 }
-| STLFormula "U" STLFormula           {
+| STLFormula UNTIL STLFormula           {
     $$ = new STLFormulaUNTIL($1, $3);
 }
 ;
 
 BoolExpr:
-"(" BoolExpr ")"                                    {
+LRPAREN BoolExpr RRPAREN                                    {
     $$ = $2;
 }
 | BoolExpr boolOp BoolExpr                          {
@@ -296,7 +278,7 @@ BoolExpr:
 | cmp                                               {
     $$ = $1;
 }
-| ISSTEP "(" expWP COMMA expWP ")"                  {
+| ISSTEP LRPAREN expWP COMMA expWP RRPAREN                  {
     $$ = new isStepFunction($3, $5);
 }
 | TRUE                                              {
@@ -308,7 +290,7 @@ BoolExpr:
 ;
 
 cmp:
-"(" cmp ")"         {
+LRPAREN cmp RRPAREN         {
     $$ = $2;
 }
 | expWP cmpOp expWP {
@@ -350,16 +332,16 @@ expWP:
 expWP1              {
     $$ = $1;
 }
-| ABS "(" expWP ")" {
+| ABS LRPAREN expWP RRPAREN {
     $$ = new ExpressionFunction(ABS, $3);
 }
-| DIFF "(" expWP ")" {
+| DIFF LRPAREN expWP RRPAREN {
     $$ = new ExpressionFunction(DIFF, $3);
 }
 ;
 
 expWP1: // Expressions plus external ports
-"(" expWP1 ")"      {
+LRPAREN expWP1 RRPAREN      {
     $$ = $2;
 }
 | expWP1 "+" expWP1 {
