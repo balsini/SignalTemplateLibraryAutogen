@@ -216,10 +216,16 @@ std::string STLdriver::createSTLFormulaUntil(const std::string &parent)
   return name;
 }
 
-std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::string &parent)
+std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::string &parent, bool withDelay)
 {
+  int x_pos_start = position_X_EXP[0];
+  int x_pos_end = position_X_EXP[1];
+
+  if (withDelay)
+    x_pos_start += (position_X_EXP[1] - position_X_EXP[0]) / 2;
+
   // Create empty container
-  std::string name = createEmptyBlock(SRC_INFO, parent, position_X_EXP[0], position_X_EXP[1], 20, 40);
+  std::string name = createEmptyBlock(SRC_INFO, parent, x_pos_start, x_pos_end, 20, 40);
 
   // Create internals
 
@@ -229,8 +235,16 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
 
   // Clock
   testBlockAppendLn(SRC_INFO_TEMP, name + "_CLOCK = add_block('simulink/Sources/Clock', [" + name + " '/CLOCK']);");
-  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CLOCK, 'position',[" + std::to_string(position_X_IN[0])+ ", 60, " + std::to_string(position_X_IN[1])+ ", 80]);");
+  testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_CLOCK, 'position',[" + std::to_string(position_X_IN[0]) + ", 60, " + std::to_string(position_X_IN[1]) + ", 80]);");
 
+  if (withDelay) {
+    // Dealy input port
+    testBlockAppendLn(SRC_INFO_TEMP, name + "_DELAY = add_block('simulink/Sources/In1', [" + name + " '/DELAY']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_DELAY, 'position',[" + std::to_string(position_X_IN[0])+ ", 100, " + std::to_string(position_X_IN[1]) + ", 120]);");
+    // Sub
+    testBlockAppendLn(SRC_INFO_TEMP, name + "_DELAY_SUB = add_block('simulink/Math Operations/Subtract', [" + name + " '/DELAY_SUB']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_DELAY_SUB,'position',[" + std::to_string(position_X_IN[0] + 60) + ", 60, " + std::to_string(position_X_IN[1] + 60) + ", 80]);");;
+  }
 
   testBlockAppendLn(SRC_INFO_TEMP, name + "_START = add_block('simulink/Sources/Constant', [" + name + " '/START']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_START, 'Value', '" + time.start + "');");
@@ -249,7 +263,6 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
     testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL1,'Operator', '<');");
 
   createLine(SRC_INFO, name + "_START", name + "_REL1", name);
-  createLine(SRC_INFO, name + "_CLOCK", name + "_REL1", name, 1, 2);
 
   testBlockAppendLn(SRC_INFO_TEMP, name + "_REL2 = add_block('simulink/Logic and Bit Operations/Relational Operator', [" + name + " '/REL2']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL2,'position',[" + std::to_string(position_X_OP[0])+ ", 100, " + std::to_string(position_X_OP[1])+ ", 120]);");
@@ -259,8 +272,18 @@ std::string STLdriver::createTimeInterval(const TimeInterval &time, const std::s
   else
     testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL2,'Operator', '<');");
 
+  if (withDelay) {
+    createLine(SRC_INFO, name + "_DELAY", name + "_DELAY_SUB", name, 1, 2);
+    createLine(SRC_INFO, name + "_CLOCK", name + "_DELAY_SUB", name, 1, 1);
+
+    createLine(SRC_INFO, name + "_DELAY_SUB", name + "_REL1", name, 1, 2);
+    createLine(SRC_INFO, name + "_DELAY_SUB", name + "_REL2", name);
+  } else {
+    createLine(SRC_INFO, name + "_CLOCK", name + "_REL1", name, 1, 2);
+    createLine(SRC_INFO, name + "_CLOCK", name + "_REL2", name);
+  }
+
   createLine(SRC_INFO, name + "_END", name + "_REL2", name, 1, 2);
-  createLine(SRC_INFO, name + "_CLOCK", name + "_REL2", name);
 
   testBlockAppendLn(SRC_INFO_TEMP, name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/AND']);");
   testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'Operator', '" + "AND" + "');");

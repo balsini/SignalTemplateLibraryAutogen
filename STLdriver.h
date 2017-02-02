@@ -77,7 +77,8 @@ public:
   void linkSTLFormulas(const blockPortMapping &bpm);
 
   std::string createTimeInterval(const TimeInterval &time,
-                                 const std::string &parent);
+                                 const std::string &parent,
+                                 bool withDelay = false);
 
   std::string createSTLFormulaTemporalOperator(TemporalOperator op,
                                         std::string parent);

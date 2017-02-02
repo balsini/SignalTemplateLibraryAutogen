@@ -641,18 +641,47 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OUT = add_block('simulink/Sinks/Out1', [" + name + " '/OUT']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OUT,'position',[" + std::to_string(position_X_OUT[0]) + ", 20, " + std::to_string(position_X_OUT[1]) + ", 40])");
 
+  // TODO
+
+  std::string ti = d->createTimeInterval(_t, name);
+
+  //d->createLine(SRC_INFO, ti, to, name);
+  //d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
+  //d->createLine(SRC_INFO, to, name + "_OUT", name);
+
+
+  // TODO
+  /*
   d->testBlockAppendLn(SRC_INFO_TEMP, name + "_OP = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/OP']);");
-  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'Operator', 'And');");
-
-  blockPortMapping A = left->generate(d, name, 0);
-  blockPortMapping B = right->generate(d, name, 1);
-
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'Operator', 'Or');");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+  */
 
+  blockPortMapping A = left->generate(d, name, 2);
+  blockPortMapping B = right->generate(d, name, 3);
+
+  /*
   d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
   d->createLine(SRC_INFO, std::get<0>(A), name + "_OP", name);
   d->createLine(SRC_INFO, std::get<0>(B), name + "_OP", name, 1, 2);
+  */
 
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_ANDSTL = add_block('STLlib/ANDSTL', [" + name + " '/ANDSTL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ANDSTL, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
+
+
+  d->createLine(SRC_INFO, name + "_ANDSTL", name + "_OUT", name, 2, 1);
+
+
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_ANDSTL", name, 1, 2);
+  d->createLine(SRC_INFO, std::get<0>(B), name + "_ANDSTL", name, 1, 3);
+
+/*
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_RI = add_block('simulink/Sources/Constant', [" + name + " '/RIGHT_INTERVAL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
+
+  d->createLine(SRC_INFO, name + "_RI", name + "_UNTIL", name, 1, 2);
+  */
   /////////////////////////
   /// Create input ports //
   /////////////////////////
