@@ -1,0 +1,17 @@
+Ts =  0;
+Te =  1;
+Tsf =  0.1;
+Tef =  1.1;
+
+%%
+
+<>_[Ts, Te] TRUE;
+<>_[Tsf, Tef] TRUE;
+
+//<>_[0, T](step(x_ref,r) AND <>(x-x_ref > c));
+
+//<>_[0, T](step(x_ref,r) AND []_[0,zeta](x_1 < mu * x_1_star));
+
+//<>_[0, T](step(x_ref,r) AND <>_[s,T](abs(x-x_ref) > beta * x_ref));
+
+//<>_[0, T]((x_diff > m) AND <>_[0,w](x_diff < -m));
