@@ -6,9 +6,14 @@ Tef =  1.1;
 %%
 
 <> { TRUE };
-<> { (TRUE) };
-<> { (FALSE) };
-<> { ((FALSE)) };
+<> { ( TRUE ) };
+<> { ( FALSE ) };
+<> { ( ( FALSE ) ) };
+
+<> { !{ TRUE } };
+<> { !{ FALSE } };
+
+<> { !{ !{ TRUE } } };
 
 [] { (FALSE) };
 [] { TRUE };

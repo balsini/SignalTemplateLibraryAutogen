@@ -282,7 +282,7 @@ AND     {
 ;
 
 STLNeg:
-"!" "(" STLFormula ")"  {
+NOT "{" STLFormula "}"  {
     $$ = new STLFormulaNOT($3);
 }
 ;
