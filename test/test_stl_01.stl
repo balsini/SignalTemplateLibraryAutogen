@@ -1,0 +1,36 @@
+Ts =  0;
+Te =  1;
+Tsf =  0.1;
+Tef =  1.1;
+
+%%
+
+<> TRUE;
+<> (TRUE);
+<> (FALSE);
+<> ((FALSE));
+
+[] (FALSE);
+[] (TRUE);
+
+<>_[Ts, Te] (TRUE);
+<>_[Tsf, Tef] (FALSE);
+
+[]_[Ts, Te] (FALSE);
+[]_[Tsf, Tef] (TRUE);
+
+[] (FALSE && TRUE);
+[] (FALSE || TRUE);
+[] (FALSE || TRUE && FALSE);
+
+
+[] (1 > 2);
+[] (1 < 2);
+[] (1 <= 2);
+[] (1 <= 2);
+[] (1 == 2);
+[] (1 != 2 - 1);
+
+[] (FALSE || 1 < 2);
+[] (FALSE || 1 < 2 && TRUE);
+[] (FALSE || 1 < 2 && TRUE && isStep(Ts, Te));

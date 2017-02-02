@@ -44,8 +44,7 @@ SUMMARY
 | ---        | ---    |
 | TimeExpr   | [Expr, Expr] |
 | Expr       | Val \| Expr ExprOp Val |
-| CmpExpr    | Expr CmpOp Expr |
-| BoolExpr   | CmpExpr \| BoolExpr BoolOp BoolExpr \| BoolFunction \| BoolVal | 
+| BoolExpr   | Expr CmpOp Expr \| BoolExpr BoolOp BoolExpr \| BoolFunction \| BoolVal | 
 
 #### Operators
 
