@@ -16,13 +16,13 @@ T_rise = 0.25;
  ******************************/
 
 // Rise Time
-<>_[StepTime, StepTime + SettlingTime] { SIGA < 0.9 * REFA };
+RiseTime : <>_[StepTime, StepTime + SettlingTime] { SIGA < 0.9 * REFA };
 
 // Overshoot
-[]_[StepTime, SimulationEnd] { SIGA < REFA + MaxOvershoot };
+Overshoot : []_[StepTime, SimulationEnd] { SIGA < REFA + MaxOvershoot };
 
 // SettlingTime
-[]_[StepTime + SettlingTime, SimulationEnd] { abs(SIGA - REFA) < 0.3 };
+SettlingTime : []_[StepTime + SettlingTime, SimulationEnd] { abs(SIGA - REFA) < 0.3 };
 
 // Steady state error
-[]_[SimulationEnd, SimulationEnd] { abs(SIGA - REFA) < 0.1 };
+SteadyState : []_[SimulationEnd, SimulationEnd] { abs(SIGA - REFA) < 0.1 };

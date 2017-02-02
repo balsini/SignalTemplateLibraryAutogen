@@ -36,6 +36,7 @@ BODYSTART   "%%"
 ASSIGN      "="
 COMMA       ","
 SEMICOLON   ";"
+COLON       ":"
 ;
 
 %token
@@ -130,22 +131,6 @@ FALSE       "FALSE"
 
 %% /*------------------------------------------------------------------------*/
 
-/*
- *   **********************
- *   * Language structure *
- *   **********************
- *
- * STLFormula : BoolExpr | !STLFormula | STLFormula AND STLFormula | STLUntil | STLAlways | STLEventually
- * STLAlways : [] {TIME} STLFormula
- * STLEventually : <> {TIME} STLFormula
- * STLUntil : STLFormula U {TIME} STLFormula
- *
- * Expr : VAL [+ | * | - | /] VAL
- * CmpExpr : Expr [>= | < | ...] Expr
- * BoolExpr : CmpExpr | BoolExpr [&& | ||] BoolExpr | boolFunction | TRUE | FALSE
- *
- */
-
 parser:
 header  {
     std::cout << "## Header DONE ##" << std::endl;
@@ -237,8 +222,11 @@ body:
 ;
 
 body_line:
-STLFormula   SEMICOLON  {
+STLFormula SEMICOLON  {
     driver.addSTLFormula($1);
+}
+| VAR COLON STLFormula SEMICOLON  {
+    driver.addSTLFormula($3, $1);
 }
 ;
 

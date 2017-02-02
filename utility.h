@@ -67,20 +67,16 @@ struct LogicalOperation {
 };
 
 class TreeNode {
-
+  std::string _name;
 protected:
   TreeNode *left;
   TreeNode *right;
 
 public:
-  TreeNode() : left(nullptr), right(nullptr) {}
-  ~TreeNode() {
-    delete left;
-    left = nullptr;
-
-    delete right;
-    right = nullptr;
-  }
+  TreeNode(const std::string &name = "");
+  ~TreeNode();
+  void setName(const std::string &name);
+  std::string getName() const;
   virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos) = 0;
 };
 

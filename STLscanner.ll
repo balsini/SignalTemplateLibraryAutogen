@@ -50,6 +50,7 @@ blank [ \t]
 
 ","   return yy::STLparser::make_COMMA(loc);
 ";"   return yy::STLparser::make_SEMICOLON(loc);
+":"   return yy::STLparser::make_COLON(loc);
 
 "-"   return yy::STLparser::make_MINUS(loc);
 "+"   return yy::STLparser::make_PLUS(loc);

@@ -379,7 +379,7 @@ blockPortMapping STLdriver::createSTLFormulas()
 
     blockPortMapping bm = n->generate(this, name, counter);
 
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [" + name + " '/VALID_" + std::to_string(counter) + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [" + name + " '/VALID_" + n->getName() + "']);");
     testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
 
     createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_ASSERT", name);
@@ -463,7 +463,8 @@ void STLdriver::parsePorts()
   systemPortsFile.close();
 }
 
-void STLdriver::addSTLFormula(TreeNode *f)
+void STLdriver::addSTLFormula(TreeNode *f, const std::string &name)
 {
+  f->setName(name);
   nodes.push_back(f);
 }

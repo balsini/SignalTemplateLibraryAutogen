@@ -34,6 +34,31 @@ void updateRequiredPorts(STLdriver *d, const std::string &name, portMapping &bpm
   }
 }
 
+TreeNode::TreeNode(const std::string &name) :
+  _name(name),
+  left(nullptr),
+  right(nullptr)
+{}
+
+TreeNode::~TreeNode()
+{
+  delete left;
+  left = nullptr;
+
+  delete right;
+  right = nullptr;
+}
+
+void TreeNode::setName(const std::string &name)
+{
+  _name = name;
+}
+
+std::string TreeNode::getName() const
+{
+  return _name;
+}
+
 BooleanValue::BooleanValue(bool v) :
   _v(v)
 {
