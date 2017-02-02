@@ -34,9 +34,9 @@ SUMMARY
 | Id | Is |
 | ---           | ---    |
 | STLFormula    | BoolExpr \| !STLFormula \| STLFormula AND STLFormula \| STLUntil \| STLAlways \| STLEventually |
-| STLAlways     | []_TimeExpr STLFormula |
-| STLEventually | <>_TimeExpr STLFormula      |
-| STLUntil      | STLFormula U_TimeExpr STLFormula      |
+| STLAlways     | []_TimeExpr STLFormula \| [] STLFormula |
+| STLEventually | <>_TimeExpr STLFormula \| <> STLFormula      |
+| STLUntil      | STLFormula U_TimeExpr STLFormula \| STLFormula U STLFormula      |
 
 #### Expressions
 
