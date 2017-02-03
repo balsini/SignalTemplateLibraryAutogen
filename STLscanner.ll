@@ -44,7 +44,7 @@ blank [ \t]
 
 "="   return yy::STLparser::make_ASSIGN(loc);
 
-"isStep" return yy::STLparser::make_ISSTEP(loc);
+"step" return yy::STLparser::make_STEP(loc);
 "diff" return yy::STLparser::make_DIFF(loc);
 "abs" return yy::STLparser::make_ABS(loc);
 

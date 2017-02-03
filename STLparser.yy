@@ -84,7 +84,7 @@ NEQUAL      "!="
 ;
 
 %token
-ISSTEP      "isStep"
+STEP        "step"
 DIFF        "diff"
 ABS         "abs"
 TRUE        "TRUE"
@@ -249,7 +249,7 @@ BoolExpr:
 | CmpExp                                            {
     $$ = $1;
 }
-| ISSTEP "(" expWP COMMA expWP ")"                  {
+| STEP "(" expWP COMMA expWP ")"                  {
     $$ = new isStepFunction($3, $5);
 }
 | TRUE                                              {
