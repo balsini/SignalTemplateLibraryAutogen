@@ -12,6 +12,11 @@ zeta = 0.5;
 mu = 0.95;
 steadyStateValue = 10;
 
+s = 3;
+beta = 0.02;
+
+a = 0.01;
+
 %%
 
 /******************************
@@ -34,6 +39,6 @@ Overshoot : []_[0, T] { step(x_ref, r) AND <> { x - x_ref > c } };
 
 RiseTime : <>_[0, T] { step(x_ref, r) AND []_[0,zeta] { x < mu * steadyStateValue } };
 
-//SettlingTime : []_[StepTime + SettlingTime, SimulationEnd] { abs(SIGA - REFA) < 0.3 };
+SettlingTime : <>_[0, T] { step(x_ref, r) AND <>_[s, T] {abs(x - x_ref) > beta * x_ref} };
 
-//SteadyState : []_[SimulationEnd, SimulationEnd] { abs(SIGA - REFA) < 0.1 };
+SteadyState : <>_[T, T] { abs(x - x_ref) > a };
