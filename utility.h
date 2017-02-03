@@ -77,7 +77,7 @@ public:
   ~TreeNode();
   void setName(const std::string &name);
   std::string getName() const;
-  virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos) = 0;
+  virtual blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false) = 0;
 };
 
 class STLFormula : public TreeNode {
@@ -89,13 +89,13 @@ class BoolExpr : public STLFormula {
 class STLFormulaNOT : public STLFormula {
 public:
   STLFormulaNOT(STLFormula *f);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class STLFormulaAND : public STLFormula {
 public:
   STLFormulaAND(STLFormula *f1, STLFormula *f2);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class STLAlways : public STLFormula {
@@ -104,7 +104,7 @@ class STLAlways : public STLFormula {
 public:
   STLAlways(const TimeInterval &t, STLFormula *f);
   STLAlways(STLFormula *f);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class STLEventually : public STLFormula {
@@ -113,7 +113,7 @@ class STLEventually : public STLFormula {
 public:
   STLEventually(const TimeInterval &t, STLFormula *f);
   STLEventually(STLFormula *f);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class STLFormulaUNTIL : public STLFormula {
@@ -122,7 +122,7 @@ class STLFormulaUNTIL : public STLFormula {
 public:
   STLFormulaUNTIL(const TimeInterval &t, STLFormula *f1, STLFormula *f2);
   STLFormulaUNTIL(STLFormula *f1, STLFormula *f2);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class Expression : public TreeNode {
@@ -133,13 +133,13 @@ public:
   Expression() {}
   Expression(MathOperator op, Expression *e1, Expression *e2);
   Expression(MathOperator op, std::string value);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class ExpressionFunction : public Expression {
 public:
   ExpressionFunction(MathOperator op, Expression *e);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 /********* Boolean Expressions *********/
@@ -151,14 +151,14 @@ class BooleanOperation : public BooleanExpression {
   LogicalOperator _op;
 public:
   BooleanOperation(LogicalOperator op, BooleanExpression *b1, BooleanExpression *b2);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class ComparisonExpression : public BooleanExpression {
   ComparisonOperator _op;
 public:
   ComparisonExpression(ComparisonOperator op, Expression *e1, Expression *e2);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class BooleanFunction : public BooleanExpression {};
@@ -166,14 +166,14 @@ class BooleanFunction : public BooleanExpression {};
 class isStepFunction : public BooleanFunction {
 public:
   isStepFunction(Expression *e1, Expression *e2);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 class BooleanValue : public BooleanExpression {
   bool _v;
 public:
   BooleanValue(bool v);
-  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos);
+  blockPortMapping generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time = false);
 };
 
 void updateRequiredPorts(STLdriver *d,

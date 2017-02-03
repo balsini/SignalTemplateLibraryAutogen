@@ -70,7 +70,7 @@ BooleanValue::BooleanValue(bool v) :
   std::cout << "]" << std::endl;
 }
 
-blockPortMapping BooleanValue::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping BooleanValue::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -112,7 +112,7 @@ isStepFunction::isStepFunction(Expression *e1, Expression *e2)
   right = e2;
 }
 
-blockPortMapping isStepFunction::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping isStepFunction::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -154,7 +154,7 @@ ComparisonExpression::ComparisonExpression(ComparisonOperator op, Expression *e1
   right = e2;
 }
 
-blockPortMapping ComparisonExpression::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping ComparisonExpression::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -210,7 +210,7 @@ BooleanOperation::BooleanOperation(LogicalOperator op, BooleanExpression *b1, Bo
   right = b2;
 }
 
-blockPortMapping BooleanOperation::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping BooleanOperation::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -286,7 +286,7 @@ Expression::Expression(MathOperator op, std::string value) :
  * or input port, otherwise it creates the mathematical operator and performs
  * a recursive call in order to create the expressions subtrees.
  */
-blockPortMapping Expression::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping Expression::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -370,7 +370,7 @@ ExpressionFunction::ExpressionFunction(MathOperator op, Expression *e)
   left = e;
 }
 
-blockPortMapping ExpressionFunction::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping ExpressionFunction::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
 
   portMapping bpm;
@@ -438,7 +438,7 @@ STLFormulaUNTIL::STLFormulaUNTIL(STLFormula *f1, STLFormula *f2) :
   right = f2;
 }
 
-blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -478,7 +478,7 @@ blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &pare
   if (_tSet) {
     d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'Value', '" + _t.end + "');");
 
-    std::string ti = d->createTimeInterval(_t, name);
+    std::string ti = d->createTimeInterval(_t, name, rel_time);
     d->createLine(SRC_INFO, ti, name + "_UNTIL", name);
   } else {
     d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_RI, 'Value', 'inf');");
@@ -514,7 +514,7 @@ STLEventually::STLEventually(STLFormula *f) :
   left = f;
 }
 
-blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -535,14 +535,14 @@ blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent
   /// Generate expressions //
   ///////////////////////////
 
-  blockPortMapping A = left->generate(d, name, _tSet ? 1 : 0);
+  blockPortMapping A = left->generate(d, name, 1);
   std::string ti;
 
   if (_tSet) {
-    ti = d->createTimeInterval(_t, name);
+    ti = d->createTimeInterval(_t, name, rel_time);
   } else {
     TimeInterval t("[", "0", "inf", "]");
-    ti = d->createTimeInterval(t, name);
+    ti = d->createTimeInterval(t, name, rel_time);
   }
 
   std::string to = d->createSTLFormulaTemporalOperator(EVENTUALLY, name);
@@ -557,6 +557,12 @@ blockPortMapping STLEventually::generate(STLdriver *d, const std::string &parent
 
   unsigned int portId = 1;
   updateRequiredPorts(d, name, bpm, A, portId);
+
+  if (rel_time) {
+    d->testBlockAppendLn(SRC_INFO_TEMP, name + "_REL_TIME = add_block('simulink/Sources/In1', [" + name + " '/REL_TIME']);");
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL_TIME,'position',[" + std::to_string(position_X_IN[1] + 40) + ", 20, " + std::to_string(position_X_IN[1] + 60) + ", 40])");
+    d->createLine(SRC_INFO, name + "_REL_TIME", ti, name);
+  }
 
   return std::make_tuple(name, bpm);
 }
@@ -576,7 +582,7 @@ STLAlways::STLAlways(STLFormula *f) :
   left = f;
 }
 
-blockPortMapping STLAlways::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping STLAlways::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -597,11 +603,16 @@ blockPortMapping STLAlways::generate(STLdriver *d, const std::string &parent, in
   /// Generate expressions //
   ///////////////////////////
 
-  blockPortMapping A = left->generate(d, name, _tSet ? 1 : 0);
+  blockPortMapping A = left->generate(d, name, (_tSet || rel_time) ? 1 : 0);
 
-  if (_tSet) {
+  std::string ti;
+  if (_tSet || rel_time) {
     std::string to = d->createSTLFormulaTemporalOperator(ALWAYS, name);
-    std::string ti = d->createTimeInterval(_t, name);
+
+    if (_tSet)
+      ti = d->createTimeInterval(_t, name, rel_time);
+    else
+      ti = d->createTimeInterval(TimeInterval("[", "0", "inf", "]"), name, rel_time);
 
     d->createLine(SRC_INFO, ti, to, name);
     d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
@@ -617,6 +628,12 @@ blockPortMapping STLAlways::generate(STLdriver *d, const std::string &parent, in
   unsigned int portId = 1;
   updateRequiredPorts(d, name, bpm, A, portId);
 
+  if (rel_time) {
+    d->testBlockAppendLn(SRC_INFO_TEMP, name + "_REL_TIME = add_block('simulink/Sources/In1', [" + name + " '/REL_TIME']);");
+    d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_REL_TIME,'position',[" + std::to_string(position_X_IN[1] + 40) + ", 20, " + std::to_string(position_X_IN[1] + 60) + ", 40])");
+    d->createLine(SRC_INFO, name + "_REL_TIME", ti, name);
+  }
+
   return std::make_tuple(name, bpm);
 }
 
@@ -627,7 +644,7 @@ STLFormulaAND::STLFormulaAND(STLFormula *f1, STLFormula *f2)
   right = f2;
 }
 
-blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;
@@ -643,12 +660,11 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
 
   // TODO
 
-  std::string ti = d->createTimeInterval(_t, name);
+  //std::string ti = d->createTimeInterval(_t, name);
 
   //d->createLine(SRC_INFO, ti, to, name);
   //d->createLine(SRC_INFO, std::get<0>(A), to, name, 1, 2);
   //d->createLine(SRC_INFO, to, name + "_OUT", name);
-
 
   // TODO
   /*
@@ -657,8 +673,8 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP,'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
   */
 
-  blockPortMapping A = left->generate(d, name, 2);
-  blockPortMapping B = right->generate(d, name, 3);
+  blockPortMapping A = left->generate(d, name, 0);
+  blockPortMapping B = right->generate(d, name, 1, true);
 
   /*
   d->createLine(SRC_INFO, name + "_OP", name + "_OUT", name);
@@ -670,11 +686,11 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ANDSTL, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
 
-  d->createLine(SRC_INFO, name + "_ANDSTL", name + "_OUT", name, 2, 1);
+  d->createLine(SRC_INFO, name + "_ANDSTL", name + "_OUT", name);
 
 
-  d->createLine(SRC_INFO, std::get<0>(A), name + "_ANDSTL", name, 1, 2);
-  d->createLine(SRC_INFO, std::get<0>(B), name + "_ANDSTL", name, 1, 3);
+  d->createLine(SRC_INFO, std::get<0>(A), name + "_ANDSTL", name, 1, 1);
+  d->createLine(SRC_INFO, std::get<0>(B), name + "_ANDSTL", name, 1, 2);
 
 /*
   d->testBlockAppendLn(SRC_INFO_TEMP, name + "_RI = add_block('simulink/Sources/Constant', [" + name + " '/RIGHT_INTERVAL']);");
@@ -687,8 +703,12 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   /////////////////////////
 
   unsigned int portId = 1;
-  updateRequiredPorts(d, name, bpm, A, portId);
   updateRequiredPorts(d, name, bpm, B, portId);
+
+  unsigned int ANDSTLPortId = portId;
+  updateRequiredPorts(d, name, bpm, A, portId);
+
+  d->createLine(SRC_INFO, name + "_ANDSTL", std::get<0>(B), name, 2, ANDSTLPortId);
 
   return std::make_tuple(name, bpm);
 }
@@ -699,7 +719,7 @@ STLFormulaNOT::STLFormulaNOT(STLFormula *f)
   left = f;
 }
 
-blockPortMapping STLFormulaNOT::generate(STLdriver *d, const std::string &parent, int vpos)
+blockPortMapping STLFormulaNOT::generate(STLdriver *d, const std::string &parent, int vpos, bool rel_time)
 {
   portMapping bpm;
   unsigned int y = 40 * vpos + 20;

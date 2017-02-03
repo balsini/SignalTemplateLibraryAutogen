@@ -327,62 +327,24 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
 
   switch (op) {
     case ALWAYS:
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_OP1 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/NOT']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP1, 'Operator', '" + "NOT" + "');");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP1, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_OP2 = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/OR']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP2, 'Operator', '" + "OR" + "');");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_OP2, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_ALWAYS = add_block('STLlib/Always', [" + name + " '/ALWAYS']);");
+      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ALWAYS, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
-      // Connect ports
-      createLine(SRC_INFO, name + "_OP2", name + "_OUT", name);
-      createLine(SRC_INFO, name + "_TIME", name + "_OP1", name);
-      createLine(SRC_INFO, name + "_STL", name + "_OP2", name, 1, 1);
-      createLine(SRC_INFO, name + "_OP1", name + "_OP2", name, 1, 2);
+      createLine(SRC_INFO, name + "_ALWAYS", name + "_OUT", name);
+      createLine(SRC_INFO, name + "_TIME", name + "_ALWAYS", name, 1, 2);
+      createLine(SRC_INFO, name + "_STL", name + "_ALWAYS", name);
+
       break;
     case EVENTUALLY:
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_AND = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/AND']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'Operator', '" + "AND" + "');");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_AND, 'position',[" + std::to_string(position_X_EXP[0])+ ", 20, " + std::to_string(position_X_EXP[1])+ ", 40]);");
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_FALL = add_block('simulink/Logic and Bit Operations/Detect Decrease', [" + name + " '/FALL_EDGE']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALL, 'position',[" + std::to_string(position_X_EXP[0])+ ", 60, " + std::to_string(position_X_EXP[1])+ ", 80]);");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_EVENTUALLY = add_block('STLlib/Eventually', [" + name + " '/EVENTUALLY']);");
+      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_EVENTUALLY, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_TRUE = add_block('simulink/Sources/Constant', [" + name + " '/TRUE']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'Value', '1');");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 100, " + std::to_string(position_X_EXP[1])+ ", 120]);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_TRUE, 'OutDataTypeStr', 'boolean');");
+      createLine(SRC_INFO, name + "_EVENTUALLY", name + "_OUT", name);
+      createLine(SRC_INFO, name + "_TIME", name + "_EVENTUALLY", name, 1, 2);
+      createLine(SRC_INFO, name + "_STL", name + "_EVENTUALLY", name);
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_FALSE = add_block('simulink/Sources/Constant', [" + name + " '/FALSE']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'Value', '0');");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'position',[" + std::to_string(position_X_EXP[0])+ ", 140, " + std::to_string(position_X_EXP[1])+ ", 160]);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FALSE, 'OutDataTypeStr', 'boolean');");
-
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_FFSR = add_block('simulink_extras/Flip Flops/S-R Flip-Flop', [" + name + " '/FFSR']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_FFSR, 'position',[" + std::to_string(position_X_OP[0])+ ", 20, " + std::to_string(position_X_OP[1])+ ", 40]);");
-
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_NULL = add_block('simulink/Sinks/Terminator', [" + name + " '/NULL']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_NULL, 'position',[" + std::to_string(position_X_OP[0])+ ", 140, " + std::to_string(position_X_OP[1])+ ", 160]);");
-
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_SWITCH = add_block('simulink/Signal Routing/Switch', [" + name + " '/SWITCH']);");
-      testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_SWITCH, 'position',[" + std::to_string(position_X_OUT[0])+ ", 20, " + std::to_string(position_X_OUT[1])+ ", 120]);");
-
-      // Connect ports
-      createLine(SRC_INFO, name + "_STL", name + "_AND", name);
-      createLine(SRC_INFO, name + "_TIME", name + "_AND", name, 1, 2);
-      createLine(SRC_INFO, name + "_TIME", name + "_FALL", name);
-
-      createLine(SRC_INFO, name + "_AND", name + "_FFSR", name);
-      createLine(SRC_INFO, name + "_FALSE", name + "_FFSR", name, 1, 2);
-
-      createLine(SRC_INFO, name + "_FFSR", name + "_NULL", name, 2, 1);
-
-      createLine(SRC_INFO, name + "_FFSR", name + "_SWITCH", name, 1, 1);
-      createLine(SRC_INFO, name + "_FALL", name + "_SWITCH", name, 1, 2);
-      createLine(SRC_INFO, name + "_TRUE", name + "_SWITCH", name, 1, 3);
-
-      createLine(SRC_INFO, name + "_SWITCH", name + "_OUT", name);
       break;
     default:
       break;
@@ -400,12 +362,19 @@ blockPortMapping STLdriver::createSTLFormulas()
   for (TreeNode * n : nodes) {
     std::cout << std::endl << "Predicate_" << std::to_string(counter) << std::endl;
 
+    std::string assertName = n->getName() + std::to_string(counter);
+
     blockPortMapping bm = n->generate(this, name, counter);
 
-    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [" + name + " '/VALID_" + n->getName() + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_NEG_ASSERT = add_block('simulink/Logic and Bit Operations/Logical Operator', [" + name + " '/NOT_" + assertName + "']);");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_NEG_ASSERT, 'Operator', '" + "NOT" + "');");
+    testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_NEG_ASSERT,'position',[" + std::to_string(position_X_OUT[0] - 60)+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[0] - 40) + ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
+
+    testBlockAppendLn(SRC_INFO_TEMP, std::get<0>(bm) + "_ASSERT = add_block('simulink/Model Verification/Assertion', [" + name + " '/VALID_" + assertName + "']);");
     testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + std::get<0>(bm) + "_ASSERT,'position',[" + std::to_string(position_X_OUT[0])+ ", " + std::to_string(portOffset * counter + 20) + ", " + std::to_string(position_X_OUT[1])+ ", " + std::to_string(portOffset * counter + 20 + 20) + "]);");
 
-    createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_ASSERT", name);
+    createLine(SRC_INFO, std::get<0>(bm) + "_NEG_ASSERT", std::get<0>(bm) + "_ASSERT", name);
+    createLine(SRC_INFO, std::get<0>(bm), std::get<0>(bm) + "_NEG_ASSERT", name);
 
     updateRequiredPorts(this, name, bpm, bm, portId);
 
