@@ -328,7 +328,7 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
   switch (op) {
     case ALWAYS:
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_ALWAYS = add_block('STLlib/Always', [" + name + " '/ALWAYS']);");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_ALWAYS = add_block('STLLib/Always', [" + name + " '/ALWAYS']);");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ALWAYS, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
       createLine(SRC_INFO, name + "_ALWAYS", name + "_OUT", name);
@@ -338,7 +338,7 @@ std::string STLdriver::createSTLFormulaTemporalOperator(TemporalOperator op, std
       break;
     case EVENTUALLY:
 
-      testBlockAppendLn(SRC_INFO_TEMP, name + "_EVENTUALLY = add_block('STLlib/Eventually', [" + name + " '/EVENTUALLY']);");
+      testBlockAppendLn(SRC_INFO_TEMP, name + "_EVENTUALLY = add_block('STLLib/Eventually', [" + name + " '/EVENTUALLY']);");
       testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_EVENTUALLY, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
       createLine(SRC_INFO, name + "_EVENTUALLY", name + "_OUT", name);

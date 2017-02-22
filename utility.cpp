@@ -462,7 +462,7 @@ blockPortMapping STLFormulaUNTIL::generate(STLdriver *d, const std::string &pare
   blockPortMapping A = left->generate(d, name, 2);
   blockPortMapping B = right->generate(d, name, 3);
 
-  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_UNTIL = add_block('STLlib/Until', [" + name + " '/UNTIL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_UNTIL = add_block('STLLib/Until', [" + name + " '/UNTIL']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_UNTIL, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
   d->createLine(SRC_INFO, std::get<0>(A), name + "_UNTIL", name, 1, 3);
@@ -682,7 +682,7 @@ blockPortMapping STLFormulaAND::generate(STLdriver *d, const std::string &parent
   d->createLine(SRC_INFO, std::get<0>(B), name + "_OP", name, 1, 2);
   */
 
-  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_ANDSTL = add_block('STLlib/ANDSTL', [" + name + " '/ANDSTL']);");
+  d->testBlockAppendLn(SRC_INFO_TEMP, name + "_ANDSTL = add_block('STLLib/ANDSTL', [" + name + " '/ANDSTL']);");
   d->testBlockAppendLn(SRC_INFO_TEMP, "set_param(" + name + "_ANDSTL, 'position',[" + std::to_string(position_X_OP[0]) + ", 20, " + std::to_string(position_X_OP[1]) + ", 160]);");
 
 
