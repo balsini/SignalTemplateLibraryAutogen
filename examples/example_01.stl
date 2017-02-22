@@ -35,7 +35,7 @@ a = 0.01;
 
 //////////
 
-Overshoot : []_[0, T] { step(x_ref, r) AND <> { x - x_ref > c } };
+Overshoot : <>_[0, T] { step(x_ref, r) AND <> { x - x_ref > c } };
 
 RiseTime : <>_[0, T] { step(x_ref, r) AND []_[0,zeta] { x < mu * steadyStateValue } };
 
