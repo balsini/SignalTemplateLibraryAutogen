@@ -5,7 +5,7 @@ function [ ROOT ] = main( SYSTEM , NAME , ROOT_POSITION )
 
 simulink;
 load_system('simulink');
-load_system('STLlib');
+load_system('STLLib');
 open_system(SYSTEM);
 
 ROOT = [SYSTEM '/' NAME];
