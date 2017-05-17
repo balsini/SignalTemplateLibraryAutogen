@@ -1,4 +1,4 @@
-function [ ROOT ] = main( SYSTEM , NAME , ROOT_POSITION )
+function [ ROOT ] = addValidationBlock( SYSTEM , NAME , ROOT_POSITION )
 %clear all
 %SYSTEM = 'provaSimulink';
 %NAME = 'STL_TEST';
