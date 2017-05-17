@@ -1,0 +1,17 @@
+/* This example takes as reference the formulas 
+ * provided by the ST-Lib paper.
+ */
+
+/*********************************
+ * Definition of constant values *
+ *********************************/
+
+T = 10;
+
+%%
+
+/******************************
+ * Definition of STL Formulas *
+ ******************************/
+
+<>_[0, T] { x < 5 U_[0.5, 1.5] x > 5 };
